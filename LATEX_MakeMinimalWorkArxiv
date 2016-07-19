@@ -1,0 +1,102 @@
+#!/usr/bin/perl -w
+
+$uu=scalar(@ARGV);
+if ($uu ne 2)
+{
+    print "LATEX_MakeMinimalWorkArxiv [TheArch] [File]\n";
+    print "with [TheArch] the arxiv arch in the form MyPaper.tar.gz\n";
+    print "with [File] the .tex file\n";
+    print "\n";
+    print "it uses preceding functions for that goal\n";
+    print "and is subject to the very same limitations\n";
+    print "\n";
+    print "---The program remove remarks in percent\n";
+    print "---The program creates an archive ready for submission\n";
+    print "---The directory structure is unfolded\n";
+    print "\n";
+    die;
+}
+
+$TheArch=$ARGV[0];
+$File=$ARGV[1];
+
+#
+# determine temporary directory
+$TheRand=int(rand(1000000));
+print "TheRand=".$TheRand."\n";
+$WorkDir="tmp".$TheRand;
+print "WorkDir=".$WorkDir."\n";
+$TmpDir="/tmp/".$WorkDir;
+
+$order="mkdir ".$TmpDir;
+print $order."\n";
+system $order;
+
+sub TheCleanUp()
+{
+    $order="rm -rf ".$TmpDir;
+    print $order."\n";
+    system $order;
+}
+
+
+
+#
+# determine archive name
+@U=split("/", $TheArch);
+$TheName=$U[scalar(@U)-1];
+@VL=split("", $TheName);
+$nb=scalar(@VL);
+if ($VL[$nb-1] ne "z" || $VL[$nb-2] ne "g" || $VL[$nb-3] ne "\." || $VL[$nb-4] ne "r" || $VL[$nb-5] ne "a" || $VL[$nb-6] ne "t" || $VL[$nb-7] ne "\.")
+{
+    print "Archive name should finish in .tar.gz\n";
+    TheCleanUp();
+    die;
+}
+@TSL=split("", $TheArch);
+if ($TSL[0] ne "/")
+{
+    print "The archive name should be an absolute name\n";
+    TheCleanUp();
+    die;
+}
+
+
+$eStr="";
+for ($iChar=1; $iChar<=$nb-7; $iChar++)
+{
+    $eStr=$eStr.$VL[$iChar-1];
+}
+print "Archive name=".$eStr."\n";
+$SaveDir=$TmpDir."/".$eStr;
+
+$order="mkdir ".$SaveDir;
+print $order."\n";
+system $order;
+
+$TemporaryShit="./TemporaryFilePleaseRemove.tex";
+
+$order="LATEX_RemovePercentLine < ".$File." > ".$TemporaryShit;
+print $order."\n";
+system $order;
+
+$order="DimpleCopy ".$SaveDir." ".$TemporaryShit;
+print $order."\n";
+system $order;
+
+$order="(cd ".$SaveDir." && mv ".$TemporaryShit." ".$File.")";
+print $order."\n";
+system $order;
+
+$order="(cd ".$TmpDir." && tar -c ".$eStr. " | gzip > ".$TheArch.")";
+print $order."\n";
+system $order;
+
+$order="rm -f ".$TemporaryShit;
+print $order."\n";
+system $order;
+
+
+#
+# Now full cleanup
+TheCleanUp();

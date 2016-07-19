@@ -1,0 +1,223 @@
+#!/usr/bin/perl -w
+
+$uu=scalar(@ARGV);
+if ($uu ne 2)
+{
+    print "LATEX_MakeArxivArch [TheArch] [File]\n";
+    print "with [TheArch] the arxiv arch in the form MyPaper.tar.gz\n";
+    print "with [File] the .tex file\n";
+    print "\n";
+    print "it uses preceding functions for that goal\n";
+    print "and is subject to the very same limitations\n";
+    print "\n";
+    print "---The program remove remarks in percent\n";
+    print "---The program creates an archive ready for submission\n";
+    print "---The directory structure is unfolded\n";
+    print "\n";
+    die;
+}
+
+$TheArch=$ARGV[0];
+$File=$ARGV[1];
+
+#
+# determine temporary directory
+$TheRand=int(rand(1000000));
+print "TheRand=".$TheRand."\n";
+$WorkDir="tmp".$TheRand;
+print "WorkDir=".$WorkDir."\n";
+$TmpDir="/tmp/".$WorkDir;
+
+$order="mkdir ".$TmpDir;
+print $order."\n";
+if (system($order) != 0) {
+    die "Error in mkdir";
+}
+
+sub TheCleanUp()
+{
+    $order="rm -rf ".$TmpDir;
+    print $order."\n";
+    if (system($order) != 0) {
+	die "Error in rm -rf";
+    }
+
+}
+@WK=split("", $File);
+$len=scalar(@WK);
+if ($WK[$len-4] eq "." && $WK[$len-3] eq "t" && $WK[$len-2] eq "e" && $WK[$len-1] eq "x")
+{
+    $FileRed="";
+    for ($iChar=1; $iChar<=$len-4; $iChar++)
+    {
+	$eChar=$WK[$iChar-1];
+	$FileRed=$FileRed.$eChar;
+    }
+}
+else
+{
+    print "The filename should end in .tex\n";
+    print "File=".$File."\n";
+    die;
+}
+
+
+
+
+
+#
+# determine archive name
+@U=split("/", $TheArch);
+$TheName=$U[scalar(@U)-1];
+@VL=split("", $TheName);
+$nb=scalar(@VL);
+if ($VL[$nb-1] ne "z" || $VL[$nb-2] ne "g" || $VL[$nb-3] ne "\." || $VL[$nb-4] ne "r" || $VL[$nb-5] ne "a" || $VL[$nb-6] ne "t" || $VL[$nb-7] ne "\.")
+{
+    print "Archive name should finish in .tar.gz\n";
+    TheCleanUp();
+    die;
+}
+@TSL=split("", $TheArch);
+if ($TSL[0] ne "/")
+{
+    print "The archive name should be an absolute name\n";
+    TheCleanUp();
+    die;
+}
+
+
+$eStr="";
+for ($iChar=1; $iChar<=$nb-7; $iChar++)
+{
+    $eStr=$eStr.$VL[$iChar-1];
+}
+print "Archive name=".$eStr."\n";
+$SaveDir=$TmpDir."/".$eStr;
+$CompilDir=$TmpDir."/compil";
+
+$order="mkdir ".$SaveDir;
+print $order."\n";
+if (system($order) != 0) {
+    die "Error in mkdir ".$SaveDir;
+}
+
+$TemporaryShit="./TemporaryFilePleaseRemove.tex";
+
+$order="LATEX_RemovePercentLine < ".$File." > ".$TemporaryShit;
+print $order."\n";
+if (system($order) != 0) {
+    die "Error in LATEX_RemovePercentLine";
+}
+
+$order="LATEX_DirectoryUnfold ".$SaveDir." ".$TemporaryShit;
+print $order."\n";
+if (system($order) != 0) {
+    die "Error in LATEX_DirectoryUnfold";
+}
+
+$order="(cd ".$SaveDir." && mv ".$TemporaryShit." ".$File.")";
+print $order."\n";
+if (system($order) != 0) {
+    die "Error in mv operation";
+}
+
+$TotalFileTex=$SaveDir."/".$File;
+#print "TotalFileTex=".$TotalFileTex."\n";
+#print "File=".$File."\n";
+open(INFILE, $TotalFileTex) or die "impossible to open ".$TotalFileTex;
+@B=<INFILE>;
+close(INFILE);
+$HasBibliography=0;
+$HasBibliographyStyle=0;
+$nbLine=scalar(@B);
+for ($iLine=1; $iLine<=$nbLine; $iLine++)
+{
+    if ($HasBibliography == 0)
+    {
+	$line=$B[$iLine-1];
+	@VL=split("bibliography{", $line);
+	if (scalar(@VL) > 1)
+	{
+	    $eStr1=$VL[1];
+	    @VL2=split("}", $eStr1);
+	    $BiblioFileBlock=$VL2[0];
+	    $HasBibliography=1;
+	}
+	@VL=split("bibliographystyle{", $line);
+	if (scalar(@VL) > 1)
+	{
+	    $eStr1=$VL[1];
+	    @VL2=split("}", $eStr1);
+	    $BiblioFileStyle=$VL2[0];
+	    $HasBibliographyStyle=1;
+	}
+    }
+}
+print "HasBibliography=".$HasBibliography."\n";
+
+
+if ($HasBibliography eq 1)
+{
+    $order="cp -r ".$SaveDir." ".$CompilDir;
+    print $order."\n";
+    if (system($order) != 0) {
+	die "Error in cp -r";
+    }
+    
+    $order="(cd ".$CompilDir." && latex ".$File.")";
+    print $order."\n";
+    if (system($order) != 0) {
+	die "Error in latex";
+    }
+    
+    $order="(cd ".$CompilDir." && bibtex ".$FileRed.")";
+    print $order."\n";
+    if (system($order) != 0) {
+	die "Error in bibtex";
+    }
+    
+    $eFile1=$SaveDir."/".$FileRed.".bbl";
+    $eFile2=$CompilDir."/".$FileRed.".bbl";
+    $order="cp ".$eFile2." ".$eFile1;
+    print $order."\n";
+    if (system($order) != 0) {
+	die "Error in cp";
+    }
+
+    @BIB=split(",", $BiblioFileBlock);
+    $nbBib=scalar(@BIB);
+    for ($iBib=0; $iBib<$nbBib; $iBib++)
+    {
+	$BiblioFile=$BIB[$iBib];
+	$eFile1=$SaveDir."/".$BiblioFile.".bib";
+	$order="rm -f ".$eFile1;
+	print $order."\n";
+	if (system($order) != 0) {
+	    die "Error in rm -f";
+	}
+    }
+
+    $eFile1=$SaveDir."/".$BiblioFileStyle.".bst";
+    $order="rm -f ".$eFile1;
+    print $order."\n";
+    if (system($order) != 0) {
+	die "Error in rm -f";
+    }
+}
+
+$order="(cd ".$TmpDir." && tar -c ".$eStr. " | gzip > ".$TheArch.")";
+print $order."\n";
+if (system($order) != 0) {
+    die "Error in tar";
+}
+
+$order="rm -f ".$TemporaryShit;
+print $order."\n";
+if (system($order) != 0) {
+    die "Error in rm -f";
+}
+
+#
+# Now full cleanup
+
+TheCleanUp();

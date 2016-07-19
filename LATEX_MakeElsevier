@@ -1,0 +1,188 @@
+#!/usr/bin/perl -w
+
+$uu=scalar(@ARGV);
+if ($uu ne 2)
+{
+    print "LATEX_MakeElsevier [TheArch] [File]\n";
+    print "with [TheArch] the arxiv arch in the form MyPaper.tar.gz\n";
+    print "with [File] the .tex file\n";
+    print "\n";
+    print "it uses preceding functions for that goal\n";
+    print "and is subject to the very same limitations:\n";
+    print "\n";
+    print "---The program remove remarks in percent\n";
+    print "---The program creates an archive ready for submission\n";
+    print "---The directory structure is unfolded\n";
+    print "\n";
+    die;
+}
+
+$TheArch=$ARGV[0];
+$File=$ARGV[1];
+
+#
+# determine temporary directory
+sub GetTemporaryDir($)
+{
+    my ($epre) = @_;
+    while(1)
+    {
+	$TheRand=int(rand(1000000));
+	$eWorkDir=$epre.$TheRand;
+	if (-d $eWorkDir)
+	{
+	    print "Find an already existing directory\n";
+	}
+	else
+	{
+	    return $eWorkDir
+	}
+    }
+    
+}
+$WorkDir=GetTemporaryDir("else");
+print "WorkDir=".$WorkDir."\n";
+$TmpDir="/tmp/".$WorkDir;
+print "TmpDir=".$TmpDir."\n";
+
+$order="mkdir ".$TmpDir;
+print $order."\n";
+system $order;
+
+sub TheCleanUp()
+{
+    for ($i=1; $i<=5; $i++)
+    {
+	$eDir=$SaveDir.$i;
+	$order="rm -rf ".$eDir;
+	print $order."\n";
+	system $order;
+    }
+    #
+    $order="rm -rf ".$SaveDir;
+    print $order."\n";
+    system $order;
+    #
+    $order="rm -rf ".$TmpDir;
+    print $order."\n";
+    system $order;
+}
+
+
+
+#
+# determine archive name
+@U=split("/", $TheArch);
+$TheName=$U[scalar(@U)-1];
+@VL=split("", $TheName);
+$nb=scalar(@VL);
+if ($VL[$nb-1] ne "z" || $VL[$nb-2] ne "g" || $VL[$nb-3] ne "\." || $VL[$nb-4] ne "r" || $VL[$nb-5] ne "a" || $VL[$nb-6] ne "t" || $VL[$nb-7] ne "\.")
+{
+    print "Archive name should finish in .tar.gz\n";
+    TheCleanUp();
+    die;
+}
+@TSL=split("", $TheArch);
+if ($TSL[0] ne "/")
+{
+    print "The archive name should be an absolute name\n";
+    TheCleanUp();
+    die;
+}
+
+$eStr="";
+for ($iChar=1; $iChar<=$nb-7; $iChar++)
+{
+    $eStr=$eStr.$VL[$iChar-1];
+}
+print "Archive name=".$eStr."\n";
+$SaveDir=$TmpDir."/".$eStr;
+$eDir =$eStr;
+$eDir1=$eStr."1";
+$eDir2=$eStr."2";
+$eDir3=$eStr."3";
+$eDir4=$eStr."4";
+#$eDir5=$eStr."5";
+
+$SaveDir1=$TmpDir."/".$eDir1;
+$SaveDir2=$TmpDir."/".$eDir2;
+$SaveDir3=$TmpDir."/".$eDir3;
+$SaveDir4=$TmpDir."/".$eDir4;
+#$SaveDir5=$TmpDir."/".$eDir5;
+
+$order="mkdir ".$SaveDir1;
+print $order."\n";
+system $order;
+
+
+#
+# Directory unfolding operation
+# Files in pap1
+#
+
+$order="LATEX_DirectoryUnfold ".$SaveDir1." ".$File;
+print $order."\n";
+system $order;
+
+#
+# Merging into a single latex file
+#
+
+$order="(cd ".$TmpDir." && cp -r ".$eDir1." ".$eDir2.")";
+print $order."\n";
+system $order;
+
+$order="(cd ".$SaveDir2." && LATEX_FileMerging ".$File.")";
+print $order."\n";
+system $order;
+
+#
+# Removal of percent
+#
+
+$order="(cd ".$TmpDir." && cp -r ".$eDir2." ".$eDir3.")";
+print $order."\n";
+system $order;
+
+$LatexTemp=$TmpDir."/temp.tex";
+
+$order="(cd ".$SaveDir3." && LATEX_RemovePercentLine < ".$File." > ".$LatexTemp.")";
+print $order."\n";
+system $order;
+
+$order="(cd ".$SaveDir3." && mv ".$LatexTemp." ".$File.")";
+print $order."\n";
+system $order;
+
+#
+# Now renaming the figures according to Elsevier standard
+#
+
+$order="(cd ".$TmpDir." && cp -r ".$eDir3." ".$eDir4.")";
+print $order."\n";
+system $order;
+
+$order="(cd ".$SaveDir4." && LATEX_FigureFileRenumbering 2 ".$File.")";
+print $order."\n";
+system $order;
+
+#
+# Copying into the final and creating tar.gz
+#
+
+$order="(cd ".$TmpDir." && cp -r ".$eDir4." ".$eDir.")";
+print $order."\n";
+system $order;
+$eArch=$eDir.".tar.gz";
+
+$order="(cd ".$TmpDir." && tar -c ".$eDir." | gzip > ".$eArch.")";
+print $order."\n";
+system $order;
+
+$order="(cd ".$TmpDir." && mv ".$eArch." ".$TheArch.")";
+print $order."\n";
+system $order;
+
+#
+# Now full cleanup
+TheCleanUp();

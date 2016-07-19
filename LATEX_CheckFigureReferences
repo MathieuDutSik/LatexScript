@@ -1,0 +1,402 @@
+#!/usr/bin/perl -w
+
+
+$uu=scalar(@ARGV);
+
+if ($uu ne 1)
+{
+    print "LATEX_CheckFigureReference [TexFile]\n";
+    print "with [TexFile] being a tex file\n";
+    print "\n";
+    print "it checks all figures and tables citations and:\n";
+    print "--Check for bibliographical reference of same name\n";
+    print "--Check for unused figure, table references\n";
+    print "--Return statistical information for correct references\n";
+    print "\n";
+    print "It handles file with input and %\n";
+    print "Limitations: you have to use \\cite{...} or \\citep{....}\n";
+    print "and no mixture of the two is allowed\n";
+    die;
+}
+
+sub PercentSplitting($)
+{
+    my ($strToSplit) = @_;
+    @U=split("%", $strToSplit);
+    $retPercentSplit=$U[0];
+    for ($idxSplit=1; $idxSplit<=scalar(@U)-1; $idxSplit++)
+    {
+	@Lsplit=split("", $U[$idxSplit-1]);
+	$len=scalar(@Lsplit);
+	if ($len > 0 && $Lsplit[$len-1] ne "\\")
+	{
+	    $retPercentSplit=$retPercentSplit."%".$U[$idxSplit];
+	}
+	else
+	{
+	    return $retPercentSplit;
+	}
+    }
+#    print "eLine=".$strToSplit."\n";
+#    print "retLine=".$retPercentSplit."\n";
+    return $retPercentSplit;
+}
+
+
+
+$eFile=$ARGV[0];
+open(IN, $eFile) or die "impossible to open ".$eFile;
+@ListLines=<IN>;
+close(IN);
+
+for ($iLine=1; $iLine<=scalar(@ListLines); $iLine++)
+{
+    $eLine=$ListLines[$iLine-1];
+    $eLineB=PercentSplitting($eLine);
+    $ListLines[$iLine-1]=$eLineB;
+#    print "eLineB=".$eLineB;
+}
+
+
+
+$nbLabel1=0;
+@ListLabelInFigure=();
+@ListLabelInFigureLineNr=();
+$nbLabel2=0;
+@ListLabelInTable=();
+@ListLabelInTableLineNr=();
+$nbLabel3=0;
+@ListLabelInFigureTable=();
+@ListLabelInFigureTableLineNr=();
+$nbLabel4=0;
+@ListLabelInRef=();
+@ListLabelInRefLineNr=();
+
+$nbLine=scalar(@ListLines);
+$IsInFigure=0;
+$IsInTable=0;
+for ($iLine=1; $iLine<=$nbLine; $iLine++)
+{
+    $eLine=$ListLines[$iLine-1];
+#    @TOTu=split("", $eLine);
+    @U=split("input", $eLine);
+    if (scalar(@U) > 0)
+    {
+	if ($U[0] eq "\\")
+	{
+	    print "We do not allow inputs in the .tex file when checking order of citation\n";
+	    die;
+	}
+    }
+    #
+    #
+    @U=split("begin{figure", $eLine);
+    if (scalar(@U) > 2)
+    {
+	print "error, two times \"begin{figure\" in one line\n";
+	die;
+    }
+    if (scalar(@U) > 1)
+    {
+	$IsInFigure=1;
+    }
+    @U=split("end{figure", $eLine);
+    if (scalar(@U) > 2)
+    {
+	print "error, two times \"end{figure\" in one line\n";
+	die;
+    }
+    if (scalar(@U) > 1)
+    {
+	$IsInFigure=0;
+    }
+    #
+    #
+    @U=split("begin{table", $eLine);
+    if (scalar(@U) > 2)
+    {
+	print "error, two times \"begin{table\" in one line\n";
+	die;
+    }
+    if (scalar(@U) > 1)
+    {
+	$IsInTable=1;
+    }
+    @U=split("end{table", $eLine);
+    if (scalar(@U) > 2)
+    {
+	print "error, two times \"end{table\" in one line\n";
+	die;
+    }
+    if (scalar(@U) > 1)
+    {
+	$IsInTable=0;
+    }
+    #
+    #
+    if ($IsInFigure == 1)
+    {
+	@U=split("label{", $eLine);
+	if (scalar(@U) > 2)
+	{
+	    print "error, two times \"label{\" in one line\n";
+	    die;
+	}
+	if (scalar(@U) > 1)
+	{
+	    $str=$U[1];
+	    @U2=split("}", $str);
+	    $eLabel=$U2[0];
+	    $nbLabel1++;
+	    $ListLabelInFigure[$nbLabel1-1]=$eLabel;
+	    $ListLabelInFigureLineNr[$nbLabel1-1]=$iLine;
+	    $nbLabel3++;
+	    $ListLabelInFigureTable[$nbLabel3-1]=$eLabel;
+	    $ListLabelInFigureTableLineNr[$nbLabel3-1]=$iLine;
+	}
+    }
+    #
+    #
+    if ($IsInTable == 1)
+    {
+	@U=split("label{", $eLine);
+	if (scalar(@U) > 2)
+	{
+	    print "error, two times \"label{\" in one line\n";
+	    die;
+	}
+	if (scalar(@U) > 1)
+	{
+	    $str=$U[1];
+	    @U2=split("}", $str);
+	    $eLabel=$U2[0];
+	    $nbLabel2++;
+	    $ListLabelInTable[$nbLabel2-1]=$eLabel;
+	    $ListLabelInTableLineNr[$nbLabel2-1]=$iLine;
+	    $nbLabel3++;
+	    $ListLabelInFigureTable[$nbLabel3-1]=$eLabel;
+	    $ListLabelInFigureTableLineNr[$nbLabel3-1]=$iLine;
+	}
+    }
+
+
+    @U=split("ref{", $eLine);
+    $nbEnt=scalar(@U);
+    for ($i=2; $i<=$nbEnt; $i++)
+    {
+	$eStr=$U[$i-1];
+	@W=split("}", $eStr);
+	$fLabel=$W[0];
+	$IsMatch=0;
+	for ($iLabel=1; $iLabel<=$nbLabel4; $iLabel++)
+	{
+	    if ($ListLabelInRef[$iLabel-1] eq $fLabel)
+	    {
+		$IsMatch=1;
+	    }
+	}
+	if ($IsMatch == 0)
+	{
+	    $nbLabel4++;
+	    $ListLabelInRef[$nbLabel4-1]=$fLabel;
+	    $ListLabelInRefLineNr[$nbLabel4-1]=$iLine;
+	}
+    }
+}
+$DoCheckOrderFigureTable=0;
+$DoCheckOrderFigure=1;
+$DoCheckOrderTable=1;
+
+
+if ($DoCheckOrderFigureTable == 1)
+{
+    $IsCorrect=1;
+    @ListPositionFigureTable=();
+    for ($i=1; $i<=$nbLabel3; $i++)
+    {
+	$ThePosition=-1;
+	$eLabel=$ListLabelInFigureTable[$i-1];
+	$iLineDef=$ListLabelInFigureTableLineNr[$i-1];
+	for ($j=1; $j<=$nbLabel4; $j++)
+	{
+	    if ($ThePosition == -1)
+	    {
+		if ($ListLabelInRef[$j-1] eq $eLabel)
+		{
+		    $ThePosition=$j;
+		}
+	    }
+	}
+    if ($ThePosition == -1)
+    {
+	print "The label ".$eLabel." defined at line ".$iLineDef." is never cited\n";
+	$IsCorrect=0;
+    }
+	$ListPositionFigureTable[$i-1]=$ThePosition;
+    }
+    for ($i2=2; $i2<=$nbLabel3; $i2++)
+    {
+	$i1=$i2-1;
+	$iPos1=$ListPositionFigureTable[$i1-1];
+	$iPos2=$ListPositionFigureTable[$i2-1];
+	if ($iPos1 > 0 && $iPos2 > 0)
+	{
+	    if ($iPos1 > $iPos2)
+	    {
+		$eLabel1=$ListLabelInFigureTable[$i1-1];
+		$eLabel2=$ListLabelInFigureTable[$i2-1];
+		$iLine1=$ListLabelInFigureTableLineNr[$i1-1];
+		$iLine2=$ListLabelInFigureTableLineNr[$i2-1];
+		$iLineRef1=$ListLabelInRefLineNr[$iPos1-1];
+		$iLineRef2=$ListLabelInRefLineNr[$iPos2-1];
+		print "Label ".$eLabel1." is defined before label ".$eLabel2."\n";
+		print "   at lines ".$iLine1." and ".$iLine2."\n";
+		print "   Yet it is cited after\n";
+		print "   at lines ".$iLineRef1." and ".$iLineRef2."\n";
+		$IsCorrect=0;
+	    }
+	}
+    }
+    if ($IsCorrect == 1)
+    {
+	print "Reference order and citation appear to be correct for figures and table\n";
+    }
+    else
+    {
+	print "Some errors need to be corrected\n";
+	print "Order of citation of reference is as follows\n";
+	for ($iLabel=1; $iLabel<=scalar(@ListLabelInRef); $iLabel++)
+	{
+	    print "iLabel=".$iLabel." eLabel=".$ListLabelInRef[$iLabel-1]."\n";
+	}
+    }
+}
+
+
+if ($DoCheckOrderFigure == 1)
+{
+    $IsCorrect=1;
+    @ListPositionFigure=();
+    for ($i=1; $i<=$nbLabel1; $i++)
+    {
+	$ThePosition=-1;
+	$eLabel=$ListLabelInFigure[$i-1];
+	$iLineDef=$ListLabelInFigureLineNr[$i-1];
+	for ($j=1; $j<=$nbLabel4; $j++)
+	{
+	    if ($ThePosition == -1)
+	    {
+		if ($ListLabelInRef[$j-1] eq $eLabel)
+		{
+		    $ThePosition=$j;
+		}
+	    }
+	}
+    if ($ThePosition == -1)
+    {
+	print "The label ".$eLabel." defined at line ".$iLineDef." is never cited\n";
+	$IsCorrect=0;
+    }
+	$ListPositionFigure[$i-1]=$ThePosition;
+    }
+    for ($i2=2; $i2<=$nbLabel1; $i2++)
+    {
+	$i1=$i2-1;
+	$iPos1=$ListPositionFigure[$i1-1];
+	$iPos2=$ListPositionFigure[$i2-1];
+	if ($iPos1 > 0 && $iPos2 > 0)
+	{
+	    if ($iPos1 > $iPos2)
+	    {
+		$eLabel1=$ListLabelInFigure[$i1-1];
+		$eLabel2=$ListLabelInFigure[$i2-1];
+		$iLine1=$ListLabelInFigureLineNr[$i1-1];
+		$iLine2=$ListLabelInFigureLineNr[$i2-1];
+		$iLineRef1=$ListLabelInRefLineNr[$iPos1-1];
+		$iLineRef2=$ListLabelInRefLineNr[$iPos2-1];
+		print "Label ".$eLabel1." is defined before label ".$eLabel2."\n";
+		print "   at lines ".$iLine1." and ".$iLine2."\n";
+		print "   Yet it is cited after\n";
+		print "   at lines ".$iLineRef1." and ".$iLineRef2."\n";
+		$IsCorrect=0;
+	    }
+	}
+    }
+    if ($IsCorrect == 1)
+    {
+	print "Reference order and citation appear to be correct for figures\n";
+    }
+    else
+    {
+	print "Some errors need to be corrected\n";
+	print "Order of citation of reference is as follows\n";
+	for ($iLabel=1; $iLabel<=scalar(@ListLabelInRef); $iLabel++)
+	{
+	    print "iLabel=".$iLabel." eLabel=".$ListLabelInRef[$iLabel-1]."\n";
+	}
+    }
+}
+
+if ($DoCheckOrderTable == 1)
+{
+    $IsCorrect=1;
+    @ListPositionTable=();
+    for ($i=1; $i<=$nbLabel2; $i++)
+    {
+	$ThePosition=-1;
+	$eLabel=$ListLabelInTable[$i-1];
+	$iLineDef=$ListLabelInTableLineNr[$i-1];
+	for ($j=1; $j<=$nbLabel4; $j++)
+	{
+	    if ($ThePosition == -1)
+	    {
+		if ($ListLabelInRef[$j-1] eq $eLabel)
+		{
+		    $ThePosition=$j;
+		}
+	    }
+	}
+    if ($ThePosition == -1)
+    {
+	print "The label ".$eLabel." defined at line ".$iLineDef." is never cited\n";
+	$IsCorrect=0;
+    }
+	$ListPositionTable[$i-1]=$ThePosition;
+    }
+    for ($i2=2; $i2<=$nbLabel2; $i2++)
+    {
+	$i1=$i2-1;
+	$iPos1=$ListPositionTable[$i1-1];
+	$iPos2=$ListPositionTable[$i2-1];
+	if ($iPos1 > 0 && $iPos2 > 0)
+	{
+	    if ($iPos1 > $iPos2)
+	    {
+		$eLabel1=$ListLabelInTable[$i1-1];
+		$eLabel2=$ListLabelInTable[$i2-1];
+		$iLine1=$ListLabelInTableLineNr[$i1-1];
+		$iLine2=$ListLabelInTableLineNr[$i2-1];
+		$iLineRef1=$ListLabelInRefLineNr[$iPos1-1];
+		$iLineRef2=$ListLabelInRefLineNr[$iPos2-1];
+		print "Label ".$eLabel1." is defined before label ".$eLabel2."\n";
+		print "   at lines ".$iLine1." and ".$iLine2."\n";
+		print "   Yet it is cited after\n";
+		print "   at lines ".$iLineRef1." and ".$iLineRef2."\n";
+		$IsCorrect=0;
+	    }
+	}
+    }
+    if ($IsCorrect == 1)
+    {
+	print "Reference order and citation appear to be correct for tables\n";
+    }
+    else
+    {
+	print "Some errors need to be corrected\n";
+	print "Order of citation of reference is as follows\n";
+	for ($iLabel=1; $iLabel<=scalar(@ListLabelInRef); $iLabel++)
+	{
+	    print "iLabel=".$iLabel." eLabel=".$ListLabelInRef[$iLabel-1]."\n";
+	}
+    }
+}

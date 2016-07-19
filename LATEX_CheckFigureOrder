@@ -1,0 +1,128 @@
+#!/usr/bin/perl -w
+
+
+$uu=scalar(@ARGV);
+if ($uu ne 1)
+{
+    print "LATEX_CheckFigureOrder [LatexFile]\n";
+    print "with [LatexFile] being a latex file\n";
+    print "\n";
+    print "it do the following checks:\n";
+    print "--that reference follow sequentally figures\n";
+    print "--that label are just above \end{figure}\n";
+    print "--that figures are cited\n";
+    print "\n";
+    die;
+}
+
+
+@LSE=();
+@CITATION=();
+
+
+sub PercentSplitting($)
+{
+    my ($strToSplit) = @_;
+    @U=split("%", $strToSplit);
+    $retPercentSplit=$U[0];
+    for ($idxSplit=1; $idxSplit<=scalar(@U)-1; $idxSplit++)
+    {
+	@Lsplit=split("", $U[$idxSplit-1]);
+	$len=scalar(@Lsplit);
+	if ($len > 0 && $Lsplit[$len-1] ne "\\")
+	{
+	    $retPercentSplit=$retPercentSplit."%".$U[$idxSplit];
+	}
+	else
+	{
+	    return $retPercentSplit;
+	}
+    }
+#    print "eLine=".$strToSplit."\n";
+#    print "retLine=".$retPercentSplit."\n";
+    return $retPercentSplit;
+}
+
+
+sub GetFigureNr($)
+{
+    my ($eName)=@_;
+    for ($iFig=1; $iFig<=scalar(@LSE); $iFig++)
+    {
+	if ($LSE[$iFig-1] eq $eName)
+	{
+	    return $iFig;
+	}
+    }
+    return -1;
+}
+
+
+
+$File=$ARGV[0];
+open(INFILE, $File) or die "impossible to open ".$File;
+@BCL=<INFILE>;
+close(INFILE);
+
+for ($iLine=1; $iLine<=scalar(@BCL); $iLine++)
+{
+    $eLinePre=$BCL[$iLine-1];
+    $eLine=PercentSplitting($eLinePre);
+    @HC=split("end{figure", $eLine);
+    if (scalar(@HC) eq 2)
+    {
+	$eLinePrevPre=$BCL[$iLine-2];
+	$eLinePrev=PercentSplitting($eLinePrevPre);
+	@VL=split("label{", $eLinePrev);
+	if (scalar(@VL) ne 2)
+	{
+	    print "Please put \label{...} just before \end{figure}\n";
+	    print "It is necessary for this program AND not doing it\n";
+	    print "cause a SILENT figure numbering bug in latex\n";
+	    die;
+	}
+	@VL2=split("}", $VL[1]);
+	$LSE[scalar(@LSE)]=$VL2[0];
+	$CITATION[scalar(@CITATION)]=0;
+    }
+}
+
+$PrevRef=0;
+$NumberRemark=0;
+for ($iLine=1; $iLine<=scalar(@BCL); $iLine++)
+{
+    $eLinePre=$BCL[$iLine-1];
+    $eLine=PercentSplitting($eLinePre);
+    @REFlist=split("ref{", $eLine);
+    for ($iRef=2; $iRef<=scalar(@REFlist); $iRef++)
+    {
+	$chn=$REFlist[$iRef-1];
+	@BU=split("}", $chn);
+	$TheRef=$BU[0];
+	$TheNB=GetFigureNr($TheRef);
+	if ($TheNB ne -1)
+	{
+	    $CITATION[$TheNB-1]=$CITATION[$TheNB-1]+1;
+	    if ($TheNB < $PrevRef)
+	    {
+		print "figure ".$LSE[$TheNB-1]."\n";
+		print "cited before ".$LSE[$PrevRef-1]."\n";
+		print "at line ".$iLine."\n";
+		$NumberRemark++;
+	    }
+	}
+    }
+}
+if ($NumberRemark eq 0)
+{
+    print "Apparently figures seem in order\n";
+}
+else
+{
+    print "We found ".$NumberRemark." ordering errors\n";
+}
+print "Figure citation statistics\n";
+for ($iCit=1; $iCit<=scalar(@LSE); $iCit++)
+{
+    print "figure ".$LSE[$iCit-1]." cited ".$CITATION[$iCit-1]." times\n";
+}

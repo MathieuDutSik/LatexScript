@@ -1,0 +1,109 @@
+#!/usr/bin/perl -w
+
+
+# This script takes the standard entry
+# and return on standard output the text will all
+# epsfig being ordered correctly.
+
+
+
+
+
+
+sub ReorderedEpsfigCall($)
+{
+    my ($TheLine)=@_;
+    @V2=split("epsfig{", $TheLine);
+    @V3=split("}", $V2[1]);
+    $rstl=$V3[0];
+    @V4=split(",", $rstl);
+    @OrdOfficial=("file", "figure", "width", "height");
+    @LCan=();
+    for ($iEnt=1; $iEnt<=scalar(@V4); $iEnt++)
+    {
+	$_=$V4[$iEnt-1];
+	s/ //;
+	$LCan[$iEnt-1]=$_;
+    }
+    for ($iEnt=1; $iEnt<scalar(@LCan); $iEnt++)
+    {
+	for ($jEnt=$iEnt+1; $jEnt<=scalar(@LCan); $jEnt++)
+	{
+	    @V5_1=split("=", $LCan[$iEnt-1]);
+	    @V5_2=split("=", $LCan[$jEnt-1]);
+	    $pos1=-1;
+	    $pos2=-1;
+	    for ($iC=1; $iC<=scalar(@OrdOfficial); $iC++)
+	    {
+		if ($OrdOfficial[$iC-1] eq $V5_1[0])
+		{
+		    $pos1=$iC;
+		}
+		if ($OrdOfficial[$iC-1] eq $V5_2[0])
+		{
+		    $pos2=$iC;
+		}
+	    }
+	    if ($pos1 eq -1)
+	    {
+		print "You use entries that do not occur in our list, you need to correct it or the program\n";
+		die;
+	    }
+	    if ($pos2 eq -1)
+	    {
+		print "You use entries that do not occur in our list, you need to correct it or the program\n";
+		die;
+	    }
+	    if ($pos1 > $pos2)
+	    {
+		$cha=$LCan[$iEnt-1];
+		$LCan[$iEnt-1]=$LCan[$jEnt-1];
+		$LCan[$jEnt-1]=$cha;
+	    }
+	}
+    }
+    $VRES=$LCan[0];
+    for ($iEnt=2; $iEnt<=scalar(@LCan); $iEnt++)
+    {
+	$VRES=$VRES.", ".$LCan[$iEnt-1];
+    }
+#    print "size LCAN=".scalar(@LCan)."\n";
+    $ret=$V2[0]."epsfig{".$VRES."}".$V3[1];
+#    print $ret;
+#    die;
+    return $ret;
+}
+
+
+while(<STDIN>)
+{
+    $line=$_;
+    @V=split("epsfig", $line);
+    if (scalar(@V) >2)
+    {
+	print "You broke the assumption of at most one epsfig per line\n";
+	die;
+    }
+    if (scalar(@V) > 1)
+    {
+	@V=split("documentclass", $line);
+	if (scalar(@V) > 1)
+	{
+	    return "Z6PO_WVJJFHHNSD";
+	}
+	@W=split("usepackage", $line);
+	if (scalar(@W) eq 1)
+	{
+	    $lineNEW=ReorderedEpsfigCall($line);
+	    print $lineNEW;
+	}
+	else
+	{
+	    print $line;
+	}
+    }
+    else
+    {
+	print $line;
+    }
+}

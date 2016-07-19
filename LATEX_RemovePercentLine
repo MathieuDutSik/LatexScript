@@ -1,0 +1,69 @@
+#!/usr/bin/perl -w
+use strict;
+use warnings;
+
+
+# This script takes the standard entry
+# and return on standard output the text will all
+# latex code in commentary being removed
+
+
+my $iLine=0;
+while(<STDIN>)
+{
+    my $line=$_;
+    my @L=split("", $line);
+    my $lineRed="";
+    my $IsAdd=1;
+    my $PositionPercent=-1;
+    my $HasNonSpace=0;
+    $iLine++;
+#    print "iLine=".$iLine."\n";
+    for (my $iL=1; $iL<=scalar(@L); $iL++)
+    {
+	my $eChar=$L[$iL-1];
+	if ($IsAdd eq 1)
+	{
+	    my $MatchingPercent=0;
+	    if ($iL eq 1)
+	    {
+		if ($eChar eq "%")
+		{
+		    $MatchingPercent=1;
+		}
+	    }
+	    else
+	    {
+		my $eCharPrev=$L[$iL-2];
+		if ($eChar eq "%" && $eCharPrev ne "\\")
+		{
+		    $MatchingPercent=1;
+		}
+	    }
+	    if ($MatchingPercent eq 1)
+	    {
+		$PositionPercent=$iL;
+		$IsAdd=0;
+	    }
+	    if ($MatchingPercent eq 0)
+	    {
+		$lineRed=$lineRed.$eChar;
+	    }
+	    if ($eChar ne " " && $PositionPercent eq -1)
+	    {
+		$HasNonSpace=1;
+	    }
+	}
+    }
+    if ($PositionPercent eq -1)
+    {
+	print $line;
+    }
+    else
+    {
+	if ($HasNonSpace eq 1)
+	{
+	    print $lineRed."\n";
+	}
+    }
+}

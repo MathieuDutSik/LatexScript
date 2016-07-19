@@ -1,0 +1,592 @@
+#!/usr/bin/perl -w
+use strict;
+use warnings;
+
+my $uu=scalar(@ARGV);
+if ($uu eq 0 || $uu eq 1)
+{
+    print "LATEX_DirectoryUnfold TARGETDIR [File1] [File2] ....\n";
+    print "with TARGETDIR being the directory in which files are put\n";
+    print "with [Filei] being a tex file\n";
+    print "\n";
+    print "assumptions:\n";
+    print "--there is only one image file per line at most\n";
+    print "--Line with input begin by \input and nothing before\n";
+    print "--full filename appear in the text, there is no implicit .eps, .tex and so on\n";
+    print "\n";
+    print "The result is that the directory structure is flatened\n";
+    print "and put in directory TARGET\n";
+    die;
+}
+
+
+sub ExtractFromEpsfigLine($)
+{
+    my ($TheLine)=@_;
+    my @V2=split("epsfig{", $TheLine);
+    my @V3=split("}", $V2[1]);
+    my @V4=split(",", $V3[0]);
+    for (my $iEnt=1; $iEnt<=scalar(@V4); $iEnt++)
+    {
+	$_=$V4[$iEnt-1];
+	s/ //;
+	my @V5=split("=", $_);
+	if ($V5[0] eq "file" || $V5[0] eq "figure")
+	{
+	    return $V5[1];
+	}
+    }
+}
+
+
+my %MatchRealName;
+my %MatchRealNameRev;
+
+sub ExtractFromInputLine($)
+{
+    my ($TheLine)=@_;
+    my @V2=split("input", $TheLine);
+    my @LfileF=();
+    if ($V2[0] ne "\\")
+    {
+	return @LfileF;
+    }
+    my @V3=split("}", $V2[1]);
+    $_=$V3[0];
+    s/\n//;
+    s/ //;
+    s/{//;
+    my $FileNameInput1=$_;
+    my $FileNameInput2=$_.".tex";
+    my $nbExistInput=0;
+    if (-e $FileNameInput1)
+    {
+	$nbExistInput++;
+    }
+    if (-e $FileNameInput2)
+    {
+	$nbExistInput++;
+    }
+    if ($nbExistInput ne 1)
+    {
+	print "FileNameInput1=".$FileNameInput1."\n";
+	print "FileNameInput2=".$FileNameInput2."\n";
+	print "One file needs to exist\n";
+	die;
+    }
+    my $FileNameInput;
+    if (-e $FileNameInput1)
+    {
+	$FileNameInput=$FileNameInput1;
+    }
+    else {
+	$FileNameInput=$FileNameInput2;
+        $MatchRealName   {$FileNameInput1}=$FileNameInput2;
+	$MatchRealNameRev{$FileNameInput2}=$FileNameInput1;
+    }
+    print "ExtractFromInputLine FileNameInput=".$FileNameInput."\n";
+    $LfileF[0]=$FileNameInput;
+    return @LfileF;
+}
+
+sub GetTheSuffix($)
+{
+    my ($TheLine)=@_;
+    my @V2=split("", $TheLine);
+    my @V2=split("", $TheLine);
+    my @ListIndices=();
+    for (my $iChar=1; $iChar<=scalar(@V2); $iChar++)
+    {
+	if ($V2[$iChar-1] eq ".")
+	{
+	    $ListIndices[scalar(@ListIndices)]=$iChar;
+	}
+    }
+    my $LimitChar;
+    if (scalar(@ListIndices) eq 0)
+    {
+	$LimitChar=scalar(@V2)+1;
+    }
+    else
+    {
+	$LimitChar=$ListIndices[scalar(@ListIndices)-1]+1;
+    }
+    my $suffix="";
+    for (my $iChar=$LimitChar; $iChar<=scalar(@V2); $iChar++)
+    {
+	$suffix=$suffix.$V2[$iChar-1];
+    }
+    return $suffix;
+}
+
+
+sub GetThePrefix($)
+{
+    my ($TheLine)=@_;
+    my @V2=split("", $TheLine);
+    my @ListIndices=();
+    for (my $iChar=1; $iChar<=scalar(@V2); $iChar++)
+    {
+	if ($V2[$iChar-1] eq ".")
+	{
+	    $ListIndices[scalar(@ListIndices)]=$iChar;
+	}
+    }
+    my $LimitChar;
+    if (scalar(@ListIndices) eq 0)
+    {
+	$LimitChar=scalar(@V2)+1;
+    }
+    else
+    {
+	$LimitChar=$ListIndices[scalar(@ListIndices)-1]-1;
+    }
+    my $prefix="";
+    for (my $iChar=1; $iChar<=$LimitChar; $iChar++)
+    {
+	$prefix=$prefix.$V2[$iChar-1];
+    }
+    return $prefix;
+}
+
+
+
+
+sub ShallFileBeOpenedAtAll($)
+{
+    my ($TheLine)=@_;
+    my $suffix=GetTheSuffix($TheLine);
+    if ($suffix eq "")
+    {
+	return 0;
+    }
+    if ($suffix eq "tex" || $suffix eq "latex" || $suffix eq "pdf_t" || $suffix eq "pstex_t")
+    {
+	return 1;
+    }
+    if ($suffix eq "bst" || $suffix eq "bib")
+    {
+	return 0;
+    }
+    if ($suffix eq "sty")
+    {
+	return 0;
+    }
+    if ($suffix eq "pstex" || $suffix eq "ps" || $suffix eq "pdf" || $suffix eq "eps")
+    {
+	return 0;
+    }
+    return 0;
+}
+
+
+
+sub ExtractFileNameFromLine($)
+{
+    my ($line)=@_;
+    my @V=split("", $line);
+    my @LFileFound=();
+    if ($V[0] eq "%")
+    {
+	return @LFileFound;
+    }
+    @V=split("includegraphics", $line);
+    if (scalar(@V) >2)
+    {
+	print "You broke the assumption of only one file per line\n";
+	die;
+    }
+    if (scalar(@V) > 1)
+    {
+	my @WRL=split("{", $V[1]);
+	my $h=$WRL[1];
+	my @V2=split("}", $h);
+	my $file=$V2[0];
+	$LFileFound[0]=$file;
+	return @LFileFound;
+    }
+    my @V=split("epsfig", $line);
+    if (scalar(@V) >2)
+    {
+	print "You broke the assumption of at most one epfig per line\n";
+	die;
+    }
+    if (scalar(@V) > 1)
+    {
+	my @VS2=split("documentclass", $line);
+	if (scalar(@VS2) > 1)
+	{
+	    return @LFileFound;
+	}
+	my @VS3=split("usepackage", $line);
+	if (scalar(@VS3) eq 1)
+	{
+	    my $file=ExtractFromEpsfigLine($line);
+	    $LFileFound[0]=$file;
+	    return @LFileFound;
+	}
+    }
+    my @V=split("epsffile{", $line);
+    if (scalar(@V) >2)
+    {
+	print "You broke the assumption of at most one epsffile per line\n";
+	die;
+    }
+    if (scalar(@V) > 1)
+    {
+	my @V2=split("}", $V[1]);
+	my $file=$V2[0];
+	$LFileFound[0]=$file;
+	return @LFileFound;
+    }
+    my @VW1=split("\\input", $line);
+    if (scalar(@VW1) >2)
+    {
+	print "You broke the assumption of at  most one input per line\n";
+	die;
+    }
+    if (scalar(@VW1) > 1)
+    {
+	return ExtractFromInputLine($line);
+    }
+    my @VW2=split("bibliographystyle{", $line);
+    if (scalar(@VW2) > 1)
+    {
+	my @V2=split("}", $VW2[1]);
+	my $file=$V2[0].".bst";
+	$LFileFound[0]=$file;
+	return @LFileFound;
+    }
+    my @VW3=split("bibliography{", $line);
+    if (scalar(@VW3) > 1)
+    {
+	my @V2=split("}", $VW3[1]);
+	my $strBlock=$V2[0];
+	my @LBlock=split(",",$strBlock);
+	foreach (@LBlock)
+	{
+	    my $file=$_.".bib";
+	    $LFileFound[scalar(@LFileFound)]=$file;
+	}
+	return @LFileFound;
+    }
+    return @LFileFound;
+}
+
+
+
+
+sub ListCall($)
+{
+    my ($FileName)=@_;
+    my @MatchedSymbol=();
+    open(INFILE, $FileName) or die "impossible to open (1) : ".$FileName;
+    my @B=<INFILE>;
+    close(INFILE);
+    my $iEntSp=0;
+    for (my $iLine=1; $iLine<=scalar(@B); $iLine++)
+    {
+	my $line=$B[$iLine-1];
+	print "iLine=".$iLine." line=".$line."\n";
+	my @LfileEnd=ExtractFileNameFromLine($line);
+	foreach (@LfileEnd)
+	{
+	    print "iEntSp=".$iEntSp." line=".$line;
+	    print "iEntSp=".$iEntSp." file=".$_."\n";
+	    my @USL=split("", $_);
+	    my $lenUSL=scalar(@USL);
+	    print "lenUSL=".$lenUSL."\n";
+	    if ($lenUSL <= 2) {
+		print "lenUSL is too small\n";
+		die;
+	    }
+	    $MatchedSymbol[scalar(@MatchedSymbol)]=$_;
+	    $iEntSp++;
+	}
+    }
+    return @MatchedSymbol;
+}
+
+
+my $TARGET=$ARGV[0];
+
+if (-e $TARGET)
+{
+    # do nothing
+}
+else
+{
+    print "The target directory TARGET=".$TARGET."\n";
+    print " is missing. Please create it\n";
+    die;
+}
+
+
+my @ListFileNames=();
+my @ListFileStatus=();
+my @Openable=();
+sub InsertFileInDatabase($)
+{
+    my ($FileName)=@_;
+    for (my $kFile=1; $kFile<=scalar(@ListFileNames); $kFile++)
+    {
+	if ($ListFileNames[$kFile-1] eq $FileName)
+	{
+	    return;
+	}
+    }
+    print "FileName=".$FileName."\n";
+    open(INFILE, $FileName) or die "impossible to open (2) : ".$FileName;
+    close(INFILE);
+    #
+    $ListFileNames[scalar(@ListFileNames)]=$FileName;
+    $ListFileStatus[scalar(@ListFileStatus)]=0;
+    $Openable[scalar(@Openable)]=ShallFileBeOpenedAtAll($FileName);
+    #
+    my $ThePrefixLocal=GetThePrefix($FileName);
+    my $TheBBLfile=$ThePrefixLocal.".bbl";
+    if (-e $TheBBLfile)
+    {
+	$ListFileNames[scalar(@ListFileNames)]=$TheBBLfile;
+	$ListFileStatus[scalar(@ListFileStatus)]=0;
+	$Openable[scalar(@Openable)]=0;
+    }
+}
+
+my $FileLS="/tmp/ListFile";
+my $order="ls *.cls *.clo *.sty > ".$FileLS;
+print $order."\n";
+system $order;
+open(INF, $FileLS) or die "impossible to open (3) : ".$FileLS;
+while(<INF>)
+{
+    chomp($_);
+    my $eFileCLS=$_;
+    InsertFileInDatabase($eFileCLS);
+}
+close(INF);
+$order="rm -f ".$FileLS;
+print $order."\n";
+system $order;
+
+
+
+for (my $i=2; $i<=scalar(@ARGV); $i++)
+{
+    my $NewFile=$ARGV[$i-1];
+    InsertFileInDatabase($NewFile);
+}
+
+
+
+while(1)
+{
+    my $nbEntry=scalar(@ListFileNames);
+    my $IsFinished=1;
+    for (my $iFile=1; $iFile<=$nbEntry; $iFile++)
+    {
+	my $FileName=$ListFileNames[$iFile-1];
+	my $test=$Openable[$iFile-1];
+	if ($ListFileStatus[$iFile-1] eq 0 && $test eq 1)
+	{
+	    my $IsFinished=0;
+	    print "Considering insertion from iFile=".$iFile." FileName=".$FileName."\n";
+	    $ListFileStatus[$iFile-1]=1;
+	    my @VSYMB=ListCall($FileName);
+	    my $nbSymb=scalar(@VSYMB);
+	    print "  nbSymb=".$nbSymb."\n";
+	    for (my $iSymb=1; $iSymb<=$nbSymb; $iSymb++)
+	    {
+		my $NewFile=$VSYMB[$iSymb-1];
+		print "iSymb=".$iSymb." NewFile=".$NewFile."\n";
+		InsertFileInDatabase($NewFile);
+	    }
+	}
+    }
+    if ($IsFinished eq 1)
+    {
+	last;
+    }
+}
+
+my @ListFileNameNoSlash=();
+for (my $iFile=1; $iFile<=scalar(@ListFileNames); $iFile++)
+{
+    my @V=split("/", $ListFileNames[$iFile-1]);
+    my $FileNameRed=$V[scalar(@V)-1];
+    $ListFileNameNoSlash[$iFile-1]=$FileNameRed;
+}
+
+my @ListFileNameNoSlashRed=();
+my @ListFileNameNoSlashTotToRed=();
+#@ListFileNameNoSlashRedToTot=();
+my @ListFileNameNoSlashRedToNumber=();
+my @ListFileNameNoSlashTotToPosition=();
+my $nbRed=0;
+for (my $iFile=1; $iFile<=scalar(@ListFileNameNoSlash); $iFile++)
+{
+    my $eFileSlash=$ListFileNameNoSlash[$iFile-1];
+    my $WeFound=0;
+    for (my $iRed=1; $iRed<=$nbRed; $iRed++)
+    {
+	if ($ListFileNameNoSlashRed[$iRed-1] eq $eFileSlash)
+	{
+	    $WeFound=1;
+#	    $eStr=$ListFileNameNoSlashRedToTot[$iRed-1]." ".$iFile;
+#	    $ListFileNameNoSlashRedToTot[$iRed-1]=$eStr;
+	    $ListFileNameNoSlashTotToRed[$iFile-1]=$iRed;
+	    my $nb=$ListFileNameNoSlashRedToNumber[$iRed-1];
+	    $ListFileNameNoSlashRedToNumber[$iRed-1]=$nb+1;
+	    $ListFileNameNoSlashTotToPosition[$iFile-1]=$nb+1;
+	}
+    }
+    if ($WeFound eq 0)
+    {
+	$nbRed++;
+	@ListFileNameNoSlashRed[$nbRed-1]=$eFileSlash;
+#	$ListFileNameNoSlashRedToTot[$nbRed-1]=$iFile;
+	$ListFileNameNoSlashTotToRed[$iFile-1]=$nbRed;
+	$ListFileNameNoSlashTotToPosition[$iFile-1]=1;
+	$ListFileNameNoSlashRedToNumber[$nbRed-1]=1;
+    }
+}
+
+my @ListSynonyms=();
+for (my $iFile=1; $iFile<=scalar(@ListFileNameNoSlash); $iFile++)
+{
+    my $iRed=$ListFileNameNoSlashTotToRed[$iFile-1];
+    my $TheNb=$ListFileNameNoSlashRedToNumber[$iRed-1];
+    my $add;
+    if ($TheNb eq 1)
+    {
+	$add="";
+    }
+    else
+    {
+	my $pos=$ListFileNameNoSlashTotToPosition[$iFile-1];
+	$add="_cp".$pos."_".$TheNb;
+    }
+    my $prefix=GetThePrefix($ListFileNameNoSlash[$iFile-1]);
+    my $suffix=GetTheSuffix($ListFileNameNoSlash[$iFile-1]);
+    my $NewFileName=$prefix.$add.".".$suffix;
+    $ListSynonyms[$iFile-1]=$NewFileName;
+#    print "iFile=".$iFile." FileName=".$ListFileNames[$iFile-1]."\n";
+#    print "     noslash=".$ListFileNameNoSlash[$iFile-1]."\n";
+#    print "     prefix=".$prefix."\n";
+#    print "     suffix=".$suffix."\n";
+#    print "     NewFileName=".$NewFileName."\n";
+}
+
+sub LineSubstitution($$$)
+{
+    my ($line, $patt1, $patt2) =@_;
+    my @Vb1=split("bibliographystyle{", $line);
+    if (scalar(@Vb1) > 1)
+    {
+	return $line;
+    }
+    my @Vb2=split("bibliography{", $line);
+    if (scalar(@Vb2) > 1)
+    {
+	return $line;
+    }
+    my @V=split("", $line);
+    my @PAT1=split("", $patt1);
+    my $nb=scalar(@V);
+    my $nb1=scalar(@PAT1);
+    for (my $idx=1; $idx<=$nb+1-$nb1; $idx++)
+    {
+	my $ch1="";
+	for (my $i=1; $i<=$idx-1; $i++)
+	{
+	    $ch1=$ch1.$V[$i-1];
+	}
+	my $ch2="";
+	for (my $i=$idx; $i<=$idx+$nb1-1; $i++)
+	{
+	    $ch2=$ch2.$V[$i-1];
+	}
+	my $ch3="";
+	for (my $i=$idx+$nb1; $i<=$nb; $i++)
+	{
+	    $ch3=$ch3.$V[$i-1];
+	}
+	if ($ch2 eq $patt1)
+	{
+	    my $ret=$ch1.$patt2.$ch3;
+	    return $ret;
+	}
+#	print "ch1=".$ch1."  ch2=".$ch2."  ch3=".$ch3."\n";
+    }
+}
+
+
+sub CorrespondingSynonym($)
+{
+    my ($file) = @_;
+    for (my $kFile=1; $kFile<=scalar(@ListFileNames); $kFile++)
+    {
+	if ($ListFileNames[$kFile-1] eq $file)
+	{
+	    return $ListSynonyms[$kFile-1];
+	}
+    }
+}
+
+
+sub CreateNewFile($$)
+{
+    my ($filename1, $filename2)=@_;
+    open(INFILE, $filename1) or die "impossible to open (4) : ".$filename1;
+    my @B=<INFILE>;
+    close(INFILE);
+    open(OUTFILE, "> ".$filename2);
+    for (my $iLine=1; $iLine<=scalar(@B); $iLine++)
+    {
+	my $line=$B[$iLine-1];
+	my @LfileEnd=ExtractFileNameFromLine($line);
+	foreach (@LfileEnd)
+	{
+	    my $FileNameDISK=$_;
+	    my $FileNameTEX;
+	    if (exists $MatchRealNameRev{$FileNameDISK})
+	    {
+		$FileNameTEX=$MatchRealNameRev{$FileNameDISK};
+	    }
+	    else
+	    {
+		$FileNameTEX=$FileNameDISK;
+	    }
+	    my $NewFileName=CorrespondingSynonym($_);
+	    print "LineSubstitution FileNameDISK=".$FileNameDISK."  FileNameTEX=".$FileNameTEX."   NewFileName=".$NewFileName."\n";
+	    $line=LineSubstitution($line, $FileNameTEX, $NewFileName);
+	}
+	print OUTFILE $line;
+    }
+    close(OUTFILE);
+}
+
+
+for (my $iFile=1; $iFile<=scalar(@ListFileNames); $iFile++)
+{
+    print "NAME=".$ListFileNames[$iFile-1]."\n";
+    print "  SYNONYM=".$ListSynonyms[$iFile-1]."\n";
+}
+
+for (my $iFile=1; $iFile<=scalar(@ListFileNames); $iFile++)
+{
+    my $FileName1=$ListFileNames[$iFile-1];
+    my $FileName2=$TARGET."/".$ListSynonyms[$iFile-1];
+    print "Treating ".$FileName1."\n";
+    print "   creating ".$FileName2."\n";
+    if ($Openable[$iFile-1] eq 0)
+    {
+	my $order="cp ".$FileName1." ".$FileName2;
+	print $order."\n";
+	system $order;
+    }
+    else
+    {
+	CreateNewFile($FileName1, $FileName2);
+    }
+}

@@ -1,0 +1,398 @@
+#!/usr/bin/perl -w
+use strict;
+use warnings;
+
+my $uu=scalar(@ARGV);
+if ($uu ne 2)
+{
+    print "LATEX_FigureFileRenumbering [opt] [File.tex]\n";
+    print "with [File.tex] being a tex file\n";
+    print "\n";
+    print "assumptions:\n";
+    print "--there is only one image file per line at most\n";
+    print "--full filename appear in the text, there is no implicit .eps, .tex and so on\n";
+    print "\n";
+    print "With [opt]=1 the figure files are renumbered according to\n";
+    print "    fig1.eps fig2_1.eps fig2_2.eps ....\n";
+    print "With [opt]=2 the filename of figure are renamed according to\n";
+    print "   elsevier standard\n";
+    print "   fig1.eps, fig2A.eps, ...\n";
+    print "With [opt]=3 the figure files are renumbered according to\n";
+    print "    f1.eps f2_1.eps f2_2.eps ....\n";
+    print "\n";
+    print "If the pictures are outside the figure then they are numbered\n";
+    print "according to nofig1.eps ... nofig2.eps or the elsevier format\n";
+    die;
+}
+
+
+sub ExtractFromEpsfigLine($)
+{
+    my ($TheLine)=@_;
+    my @V2=split("epsfig{", $TheLine);
+    my @V3=split("}", $V2[1]);
+    my @V4=split(",", $V3[0]);
+    for (my $iEnt=1; $iEnt<=scalar(@V4); $iEnt++)
+    {
+	$_=$V4[$iEnt-1];
+	s/ //;
+	my @V5=split("=", $_);
+	if ($V5[0] eq "file" || $V5[0] eq "figure")
+	{
+	    return $V5[1];
+	}
+    }
+}
+
+
+
+sub IsMatchingInput($$)
+{
+    my ($line, $patt1) = @_;
+    my @V=split("", $line);
+    my @PAT1=split("", $patt1);
+    my $nb=scalar(@V);
+    my $nb1=scalar(@PAT1);
+    for (my $idx=1; $idx<=$nb+1-$nb1; $idx++)
+    {
+	my $ch2="";
+	for (my $i=$idx; $i<=$idx+$nb1-1; $i++)
+	{
+	    $ch2=$ch2.$V[$i-1];
+	}
+	if ($ch2 eq $patt1)
+	{
+	    return 1;
+	}
+    }
+    return 0;
+}
+
+
+
+
+
+
+sub ExtractFileNameFromLine($)
+{
+    my ($line)=@_;
+    my @V=split("includegraphics", $line);
+    if (scalar(@V) >2)
+    {
+	print "You broke the assumption of only one file per line\n";
+	die;
+    }
+    if (scalar(@V) > 1)
+    {
+	my @WRL=split("{", $V[1]);
+	my $h=$WRL[1];
+	my @V2=split("}", $h);
+	my $file=$V2[0];
+	return $file;
+    }
+    my @VB=split("epsfig", $line);
+    if (scalar(@VB) >2)
+    {
+	print "You broke the assumption of only one file per line\n";
+	die;
+    }
+    if (scalar(@VB) > 1)
+    {
+	my @VC=split("documentclass", $line);
+	if (scalar(@VC) > 1)
+	{
+	    return "Z6PO_WVJJFHHNSD";
+	}
+	my @VD=split("usepackage", $line);
+	if (scalar(@VD) eq 1)
+	{
+	    my $file=ExtractFromEpsfigLine($line);
+	    return $file;
+	}
+    }
+    my @VE=split("epsffile{", $line);
+    if (scalar(@VE) >2)
+    {
+	print "You broke the assumption of only one file per line\n";
+	die;
+    }
+    if (scalar(@VE) > 1)
+    {
+	my @VF2=split("}", $VE[1]);
+	my $file=$VF2[0];
+	return $file;
+    }
+    return "Z6PO_WVJJFHHNSD";
+}
+
+sub GetExtension($)
+{
+    my ($str)=@_;
+    my @STRL=split("", $str);
+    my $iposF;
+    for (my $ipos=0; $ipos<scalar(@STRL); $ipos++)
+    {
+	if ($STRL[$ipos] eq ".")
+	{
+	    $iposF=$ipos;
+	}
+    }
+    my $TheExt="";
+    for (my $jpos=$iposF+1; $jpos<scalar(@STRL); $jpos++)
+    {
+	$TheExt=$TheExt.$STRL[$jpos];
+    }
+    return $TheExt;
+}
+
+
+
+my @ListFigureFilenames=();
+my @ListExtensions=();
+my @ListFigureNumber=();
+
+my $opt=$ARGV[0];
+my $FileTex=$ARGV[1];
+open(INFILE, $FileTex) or die "impossible to open ".$FileTex;
+my @B=<INFILE>;
+close(INFILE);
+
+my $IsInFigure=0;
+my $idxFigure=0;
+for (my $iLine=0; $iLine<scalar(@B); $iLine++)
+{
+    my $eLine=$B[$iLine];
+    my @HSL=split("", $eLine);
+    if ($HSL[0] ne "%")
+    {
+	my $test0=IsMatchingInput($eLine, "begin{figure}");
+	my $test1=IsMatchingInput($eLine, "end{figure}");
+	my $file=ExtractFileNameFromLine($eLine);
+	if ($IsInFigure eq 0)
+	{
+	    if ($test0 eq 1)
+	    {
+		$IsInFigure=1;
+		$idxFigure++;
+		print "Now Nb Figures=".$idxFigure."\n";
+	    }
+	}
+	else
+	{
+	    if ($test1 eq 1)
+	    {
+		$IsInFigure=0;
+	    }
+	}
+	if ($file ne "Z6PO_WVJJFHHNSD")
+	{
+	    my $posFigure;
+	    if ($IsInFigure eq 1)
+	    {
+		$posFigure=$idxFigure;
+	    }
+	    else
+	    {
+		$posFigure=0;
+	    }
+	    $ListFigureFilenames[scalar(@ListFigureFilenames)]=$file;
+	    $ListExtensions[scalar(@ListExtensions)]=GetExtension($file);
+	    $ListFigureNumber[scalar(@ListFigureNumber)]=$posFigure;
+	    print "     Nr:".$posFigure."  file=".$file."\n";
+	}
+    }
+}
+my $TotalNbrFigures=$idxFigure;
+print "Total Number of figures=".$TotalNbrFigures."\n";
+
+my @ListSynonyms=();
+for (my $iFile=0; $iFile<scalar(@ListFigureFilenames); $iFile++)
+{
+    $ListSynonyms[$iFile]="irrel";
+}
+my @Abcdaire=("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z");
+my %CorrespOldName_NewName;
+for (my $iFig=0; $iFig<=$TotalNbrFigures; $iFig++)
+{
+    print "iFig=".$iFig."\n";
+    my $strFig;
+    if ($opt eq 1)
+    {
+	if ($iFig eq 0)
+	{
+	    $strFig="nofig";
+	}
+	else
+	{
+	    $strFig="fig".$iFig;
+	}
+    }
+    if ($opt eq 3)
+    {
+	if ($iFig eq 0)
+	{
+	    $strFig="nf";
+	}
+	else
+	{
+	    $strFig="f".$iFig;
+	}
+    }
+    my @LMATC=();
+    for (my $iFile=1; $iFile<=scalar(@ListFigureFilenames); $iFile++)
+    {
+	if ($ListFigureNumber[$iFile-1] eq $iFig)
+	{
+	    @LMATC[scalar(@LMATC)]=$iFile;
+	}
+    }
+    my $nbFile=scalar(@LMATC);
+    if ($iFig eq 0)
+    {
+	print "  We have ".$nbFile." files outside of figures.\n";
+    }
+    else
+    {
+	print "  We have ".$nbFile." files for figure ".$iFig."\n";
+    }
+    if ($nbFile > 0)
+    {
+	if ($nbFile > 26 && $opt eq 2)
+	{
+	    print "you are dead, Elsevier did not think of\n";
+	    print "having more than 26 file in your figure";
+	    die;
+	}
+	for (my $iMat=1; $iMat<=$nbFile; $iMat++)
+	{
+	    my $iFile=$LMATC[$iMat-1];
+	    my $eType=$ListExtensions[$iFile-1];
+	    my $cha;
+	    if ($nbFile > 1)
+	    {
+		if ($opt == 1)
+		{
+		    $cha="_".$iMat;
+		}
+		if ($opt == 2)
+		{
+		    my $letter=$Abcdaire[$iMat-1];
+		    $cha=$letter;
+		}
+		if ($opt == 3)
+		{
+		    $cha="_".$iMat;
+		}
+	    }
+	    else
+	    {
+		$cha="";
+	    }
+	    my $eSynonym=$strFig.$cha.".".$eType;
+	    $ListSynonyms[$iFile-1]=$eSynonym;
+	    my $eFigName=$ListFigureFilenames[$iFile-1];
+	    $CorrespOldName_NewName{$eFigName}=$eSynonym;
+	    print "    file=".$eFigName."   synonym=".$eSynonym."\n";
+	}
+    }
+}
+
+for (my $iFile=1; $iFile<=scalar(@ListFigureFilenames); $iFile++)
+{
+    print "NAME=".$ListFigureFilenames[$iFile-1]."  SYNONYM=".$ListSynonyms[$iFile-1]."\n";
+}
+
+
+
+
+sub LineSubstitution($$$)
+{
+    my ($line, $patt1, $patt2) =@_;
+    my @V=split("", $line);
+    my @PAT1=split("", $patt1);
+    my $nb=scalar(@V);
+    my $nb1=scalar(@PAT1);
+    for (my $idx=1; $idx<=$nb+1-$nb1; $idx++)
+    {
+	my $ch1="";
+	for (my $i=1; $i<=$idx-1; $i++)
+	{
+	    $ch1=$ch1.$V[$i-1];
+	}
+	my $ch2="";
+	for (my $i=$idx; $i<=$idx+$nb1-1; $i++)
+	{
+	    $ch2=$ch2.$V[$i-1];
+	}
+	my $ch3="";
+	for (my $i=$idx+$nb1; $i<=$nb; $i++)
+	{
+	    $ch3=$ch3.$V[$i-1];
+	}
+	if ($ch2 eq $patt1)
+	{
+	    my $ret=$ch1.$patt2.$ch3;
+	    return $ret;
+	}
+    }
+}
+
+sub CorrespondingSynonym($)
+{
+    my ($file) = @_;
+    for (my $kFile=0; $kFile<scalar(@ListFigureFilenames); $kFile++)
+    {
+	if ($ListFigureFilenames[$kFile] eq $file)
+	{
+	    return $ListSynonyms[$kFile];
+	}
+    }
+}
+
+
+my $FileTMP="/tmp/FGUVJMMDHH";
+open(OUTFILE, "> ".$FileTMP);
+for (my $iLine=0; $iLine<scalar(@B); $iLine++)
+{
+    my $eLine=$B[$iLine];
+    my @HSL=split("", $eLine);
+    if ($HSL[0] ne "%")
+    {
+	my $test0=IsMatchingInput($eLine, "begin{figure}");
+	my $test1=IsMatchingInput($eLine, "end{figure}");
+	my $file=ExtractFileNameFromLine($eLine);
+	if ($file ne "Z6PO_WVJJFHHNSD")
+	{
+	    my $NewFile=CorrespondingSynonym($file);
+	    my $NewLine=LineSubstitution($eLine, $file, $NewFile);
+	    print OUTFILE $NewLine;
+	}
+	else
+	{
+	    print OUTFILE $eLine;
+	}
+    }
+}
+close(OUTFILE);
+
+my $order="cp ".$FileTMP." ".$FileTex;
+print $order."\n";
+system $order;
+
+
+
+while (my ($key, $value) = each(%CorrespOldName_NewName)) {
+    my $str1=$key;
+    my $str2=$value;
+    #
+    if ($str1 ne $str2)
+    {
+	my $order1="cp ".$str1." ".$str2;
+	print $order1."\n";
+	system $order1;
+	#
+	my $order2="rm -f ".$str1;
+	print $order2."\n";
+	system $order2;
+    }
+}
