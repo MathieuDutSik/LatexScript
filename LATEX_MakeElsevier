@@ -1,6 +1,8 @@
 #!/usr/bin/perl -w
+use strict;
+use warnings;
 
-$uu=scalar(@ARGV);
+my $uu=scalar(@ARGV);
 if ($uu ne 2)
 {
     print "LATEX_MakeElsevier [TheArch] [File]\n";
@@ -17,8 +19,8 @@ if ($uu ne 2)
     die;
 }
 
-$TheArch=$ARGV[0];
-$File=$ARGV[1];
+my $TheArch=$ARGV[0];
+my $File=$ARGV[1];
 
 #
 # determine temporary directory
@@ -27,8 +29,8 @@ sub GetTemporaryDir($)
     my ($epre) = @_;
     while(1)
     {
-	$TheRand=int(rand(1000000));
-	$eWorkDir=$epre.$TheRand;
+	my $TheRand=int(rand(1000000));
+	my $eWorkDir=$epre.$TheRand;
 	if (-d $eWorkDir)
 	{
 	    print "Find an already existing directory\n";
@@ -40,24 +42,59 @@ sub GetTemporaryDir($)
     }
     
 }
-$WorkDir=GetTemporaryDir("else");
+my $WorkDir=GetTemporaryDir("else");
 print "WorkDir=".$WorkDir."\n";
-$TmpDir="/tmp/".$WorkDir;
+my $TmpDir="/tmp/".$WorkDir;
 print "TmpDir=".$TmpDir."\n";
+
+my $order;
 
 $order="mkdir ".$TmpDir;
 print $order."\n";
 system $order;
 
+
+#
+# determine archive name
+my @U=split("/", $TheArch);
+my $TheName=$U[scalar(@U)-1];
+my @VL=split("", $TheName);
+my $nb=scalar(@VL);
+
+my $eStr="";
+for (my $iChar=1; $iChar<=$nb-7; $iChar++)
+{
+    $eStr=$eStr.$VL[$iChar-1];
+}
+print "Archive name=".$eStr."\n";
+my $SaveDir=$TmpDir."/".$eStr;
+my $eDir =$eStr;
+my $eDir1=$eStr."1";
+my $eDir2=$eStr."2";
+my $eDir3=$eStr."3";
+my $eDir4=$eStr."4";
+#$eDir5=$eStr."5";
+
+my $SaveDir1=$TmpDir."/".$eDir1;
+my $SaveDir2=$TmpDir."/".$eDir2;
+my $SaveDir3=$TmpDir."/".$eDir3;
+my $SaveDir4=$TmpDir."/".$eDir4;
+#$SaveDir5=$TmpDir."/".$eDir5;
+
+
+
+
 sub TheCleanUp()
 {
-    for ($i=1; $i<=5; $i++)
+    for (my $i=1; $i<=5; $i++)
     {
-	$eDir=$SaveDir.$i;
-	$order="rm -rf ".$eDir;
+	my $eDir=$SaveDir.$i;
+	my $order="rm -rf ".$eDir;
 	print $order."\n";
 	system $order;
     }
+    #
+    my $order;
     #
     $order="rm -rf ".$SaveDir;
     print $order."\n";
@@ -68,21 +105,13 @@ sub TheCleanUp()
     system $order;
 }
 
-
-
-#
-# determine archive name
-@U=split("/", $TheArch);
-$TheName=$U[scalar(@U)-1];
-@VL=split("", $TheName);
-$nb=scalar(@VL);
 if ($VL[$nb-1] ne "z" || $VL[$nb-2] ne "g" || $VL[$nb-3] ne "\." || $VL[$nb-4] ne "r" || $VL[$nb-5] ne "a" || $VL[$nb-6] ne "t" || $VL[$nb-7] ne "\.")
 {
     print "Archive name should finish in .tar.gz\n";
     TheCleanUp();
     die;
 }
-@TSL=split("", $TheArch);
+my @TSL=split("", $TheArch);
 if ($TSL[0] ne "/")
 {
     print "The archive name should be an absolute name\n";
@@ -90,29 +119,16 @@ if ($TSL[0] ne "/")
     die;
 }
 
-$eStr="";
-for ($iChar=1; $iChar<=$nb-7; $iChar++)
-{
-    $eStr=$eStr.$VL[$iChar-1];
-}
-print "Archive name=".$eStr."\n";
-$SaveDir=$TmpDir."/".$eStr;
-$eDir =$eStr;
-$eDir1=$eStr."1";
-$eDir2=$eStr."2";
-$eDir3=$eStr."3";
-$eDir4=$eStr."4";
-#$eDir5=$eStr."5";
 
-$SaveDir1=$TmpDir."/".$eDir1;
-$SaveDir2=$TmpDir."/".$eDir2;
-$SaveDir3=$TmpDir."/".$eDir3;
-$SaveDir4=$TmpDir."/".$eDir4;
-#$SaveDir5=$TmpDir."/".$eDir5;
+
 
 $order="mkdir ".$SaveDir1;
 print $order."\n";
 system $order;
+
+
+
+
 
 
 #
@@ -144,7 +160,7 @@ $order="(cd ".$TmpDir." && cp -r ".$eDir2." ".$eDir3.")";
 print $order."\n";
 system $order;
 
-$LatexTemp=$TmpDir."/temp.tex";
+my $LatexTemp=$TmpDir."/temp.tex";
 
 $order="(cd ".$SaveDir3." && LATEX_RemovePercentLine < ".$File." > ".$LatexTemp.")";
 print $order."\n";
@@ -173,7 +189,7 @@ system $order;
 $order="(cd ".$TmpDir." && cp -r ".$eDir4." ".$eDir.")";
 print $order."\n";
 system $order;
-$eArch=$eDir.".tar.gz";
+my $eArch=$eDir.".tar.gz";
 
 $order="(cd ".$TmpDir." && tar -c ".$eDir." | gzip > ".$eArch.")";
 print $order."\n";

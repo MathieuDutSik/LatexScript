@@ -216,7 +216,7 @@ for (my $iFig=0; $iFig<=$TotalNbrFigures; $iFig++)
 {
     print "iFig=".$iFig."\n";
     my $strFig;
-    if ($opt eq 1)
+    if ($opt eq 1 || $opt eq 2)
     {
 	if ($iFig eq 0)
 	{
@@ -289,7 +289,6 @@ for (my $iFig=0; $iFig<=$TotalNbrFigures; $iFig++)
 		$cha="";
 	    }
 	    my $eSynonym=$strFig.$cha.".".$eType;
-	    $ListSynonyms[$iFile-1]=$eSynonym;
 	    my $eFigName=$ListFigureFilenames[$iFile-1];
 	    $CorrespOldName_NewName{$eFigName}=$eSynonym;
 	    print "    file=".$eFigName."   synonym=".$eSynonym."\n";
@@ -297,10 +296,10 @@ for (my $iFig=0; $iFig<=$TotalNbrFigures; $iFig++)
     }
 }
 
-for (my $iFile=1; $iFile<=scalar(@ListFigureFilenames); $iFile++)
-{
-    print "NAME=".$ListFigureFilenames[$iFile-1]."  SYNONYM=".$ListSynonyms[$iFile-1]."\n";
+while (my ($key, $value) = each(%CorrespOldName_NewName)) {
+    print "NAME=".$key."  SYNONYM=".$value."\n";
 }
+
 
 
 
@@ -337,17 +336,6 @@ sub LineSubstitution($$$)
     }
 }
 
-sub CorrespondingSynonym($)
-{
-    my ($file) = @_;
-    for (my $kFile=0; $kFile<scalar(@ListFigureFilenames); $kFile++)
-    {
-	if ($ListFigureFilenames[$kFile] eq $file)
-	{
-	    return $ListSynonyms[$kFile];
-	}
-    }
-}
 
 
 my $FileTMP="/tmp/FGUVJMMDHH";
@@ -363,7 +351,7 @@ for (my $iLine=0; $iLine<scalar(@B); $iLine++)
 	my $file=ExtractFileNameFromLine($eLine);
 	if ($file ne "Z6PO_WVJJFHHNSD")
 	{
-	    my $NewFile=CorrespondingSynonym($file);
+	    my $NewFile=$CorrespOldName_NewName{$file};
 	    my $NewLine=LineSubstitution($eLine, $file, $NewFile);
 	    print OUTFILE $NewLine;
 	}
@@ -380,19 +368,33 @@ print $order."\n";
 system $order;
 
 
+#
+# First move the files to something chosen at random to avoid overlap
+#
+
+my $TheRand=int(rand(1000000));
+my $ePrefix="PLTK_".$TheRand."_";
 
 while (my ($key, $value) = each(%CorrespOldName_NewName)) {
-    my $str1=$key;
-    my $str2=$value;
+    my $file1=$key;
+    my $file1_extend=$ePrefix.$file1;
     #
-    if ($str1 ne $str2)
-    {
-	my $order1="cp ".$str1." ".$str2;
-	print $order1."\n";
-	system $order1;
-	#
-	my $order2="rm -f ".$str1;
-	print $order2."\n";
-	system $order2;
-    }
+    my $order1="mv ".$file1." ".$file1_extend;
+    print $order1."\n";
+    system $order1;
+}
+
+
+#
+# First move the files to something chosen at random to avoid overlap
+#
+
+while (my ($key, $value) = each(%CorrespOldName_NewName)) {
+    my $file1=$key;
+    my $file2=$value;
+    my $file1_extend=$ePrefix.$file1;
+    #
+    my $order1="mv ".$file1_extend." ".$file2;
+    print $order1."\n";
+    system $order1;
 }
