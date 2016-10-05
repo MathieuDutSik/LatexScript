@@ -42,8 +42,8 @@ if (-e $eFileBbl)
     for (my $iLine=0; $iLine<$nbLine; $iLine++)
     {
 	my $eLine=$B[$iLine];
-	print "iLine=".$iLine."\n";
-	print "eLine=".$eLine."\n";
+#	print "iLine=".$iLine."\n";
+#	print "eLine=".$eLine."\n";
 	#
 	my $IsMatch=0;
 	for (my $iBlock=0; $iBlock<$nbBlock; $iBlock++)
@@ -58,7 +58,7 @@ if (-e $eFileBbl)
 		}
 	    }
 	}
-	print "IsMatch=".$IsMatch."\n";
+#	print "IsMatch=".$IsMatch."\n";
 	#
 	if ($IsMatch eq 1)
 	{

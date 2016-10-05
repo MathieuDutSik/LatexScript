@@ -93,7 +93,6 @@ sub GetTheSuffix($)
 {
     my ($TheLine)=@_;
     my @V2=split("", $TheLine);
-    my @V2=split("", $TheLine);
     my @ListIndices=();
     for (my $iChar=1; $iChar<=scalar(@V2); $iChar++)
     {
@@ -205,13 +204,13 @@ sub ExtractFileNameFromLine($)
 	$LFileFound[0]=$file;
 	return @LFileFound;
     }
-    my @V=split("epsfig", $line);
-    if (scalar(@V) >2)
+    my @VB=split("epsfig", $line);
+    if (scalar(@VB) > 2)
     {
 	print "You broke the assumption of at most one epfig per line\n";
 	die;
     }
-    if (scalar(@V) > 1)
+    if (scalar(@VB) > 1)
     {
 	my @VS2=split("documentclass", $line);
 	if (scalar(@VS2) > 1)
@@ -226,15 +225,15 @@ sub ExtractFileNameFromLine($)
 	    return @LFileFound;
 	}
     }
-    my @V=split("epsffile{", $line);
-    if (scalar(@V) >2)
+    my @VC=split("epsffile{", $line);
+    if (scalar(@VC) >2)
     {
 	print "You broke the assumption of at most one epsffile per line\n";
 	die;
     }
-    if (scalar(@V) > 1)
+    if (scalar(@VC) > 1)
     {
-	my @V2=split("}", $V[1]);
+	my @V2=split("}", $VC[1]);
 	my $file=$V2[0];
 	$LFileFound[0]=$file;
 	return @LFileFound;
@@ -354,7 +353,7 @@ sub InsertFileInDatabase($)
 }
 
 my $FileLS="/tmp/ListFile";
-my $order="ls *.cls *.clo *.sty > ".$FileLS;
+my $order="ls > ".$FileLS;
 print $order."\n";
 if (system($order) != 0) {
     die "Error while listing the files\n";
@@ -363,10 +362,24 @@ open(INF, $FileLS) or die "impossible to open (3) : ".$FileLS;
 while(<INF>)
 {
     chomp($_);
-    my $eFileCLS=$_;
-    InsertFileInDatabase($eFileCLS);
+    my $eFile1=$_;
+    my $lenB=length($eFile1);
+    if ($lenB > 4)
+    {
+	my $strLast=substr($eFile1, $lenB-4, 4);
+	if ($strLast eq ".cls") {
+	    InsertFileInDatabase($eFile1);
+	}
+	if ($strLast eq ".clo") {
+	    InsertFileInDatabase($eFile1);
+	}
+	if ($strLast eq ".sty") {
+	    InsertFileInDatabase($eFile1);
+	}
+    }
 }
 close(INF);
+
 $order="rm -f ".$FileLS;
 print $order."\n";
 if (system($order) != 0) {
