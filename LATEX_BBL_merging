@@ -1,22 +1,88 @@
 #!/usr/bin/perl -w
+use strict;
+use warnings;
 
-$uu=scalar(@ARGV);
+my $uu=scalar(@ARGV);
 
 if ($uu ne 1)
 {
-    print "Ever wondered why latex does not print directly\n";
-    print "the error found in the .tex file ...\n";
-    print "Use\n";
+    print "This function is for merging the bbl file in the latex\n";
+    print "\n";
     print "LATEX_BBL_merging [File]\n";
-    print "for that\n";
     die;
 }
 
-$eFile=$ARGV[0];
-$len=length($eFile);
-$eFileRed=substr($eFile, 0, $len-4);
+my $eFile=$ARGV[0];
+my $len=length($eFile);
+my $eFileRed=substr($eFile, 0, $len-4);
 
-$eFileTex=$eFileRed.".tex";
-$eFileBbl=$eFileRed.".bbl";
+my $eFileTex=$eFileRed.".tex";
+my $eFileBbl=$eFileRed.".bbl";
+if ($eFileTex ne $eFile)
+{
+    print "The file should be a latex file\n";
+    die;
+}
+
+
 print "eFileTex=".$eFileTex."\n";
 print "eFileBbl=".$eFileBbl."\n";
+if (-e $eFileBbl)
+{
+    open(INFILE, $eFileTex) or die "impossible to open ".$eFileTex;
+    my @B=<INFILE>;
+    close(INFILE);
+    my $nbLine=scalar(@B);
+    #
+    open(OUT, "> ".$eFileTex);
+    my @ListBlock=("bibliographystyle", "bibliography");
+    my $nbBlock=scalar(@ListBlock);
+    my $nbMatch=0;
+    my $BblMerged=0;
+    for (my $iLine=0; $iLine<$nbLine; $iLine++)
+    {
+	my $eLine=$B[$iLine];
+	print "iLine=".$iLine."\n";
+	print "eLine=".$eLine."\n";
+	#
+	my $IsMatch=0;
+	for (my $iBlock=0; $iBlock<$nbBlock; $iBlock++)
+	{
+	    my @SCL=split($ListBlock[$iBlock], $eLine);
+	    if (scalar(@SCL) eq 2)
+	    {
+		my @SCL2=split("", $SCL[1]);
+		if ($SCL2[0] eq "{")
+		{
+		    $IsMatch=1;
+		}
+	    }
+	}
+	print "IsMatch=".$IsMatch."\n";
+	#
+	if ($IsMatch eq 1)
+	{
+	    $nbMatch++;
+	}
+	else
+	{
+	    print OUT $eLine;
+	}
+	if ($nbMatch eq 2 && $BblMerged eq 0)
+	{
+	    $BblMerged=1;
+	    #
+	    open(INB, $eFileBbl);
+	    my @BC=<INB>;
+	    close(INB);
+	    print OUT @BC;
+	}
+    }
+    close(OUT);
+    #
+    my $order="rm -f ".$eFileBbl;
+    print "order=".$order."\n";
+    if (system($order) != 0) {
+	die "Error while removing the bbl file\n";
+    }
+}

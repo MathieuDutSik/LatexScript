@@ -30,13 +30,17 @@ $TmpDir="/tmp/".$WorkDir;
 
 $order="mkdir ".$TmpDir;
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
 
 sub TheCleanUp()
 {
     $order="rm -rf ".$TmpDir;
     print $order."\n";
-    system $order;
+    if (system($order) != 0) {
+	die "Error while doing operation\n";
+    }
 }
 
 
@@ -72,29 +76,41 @@ $SaveDir=$TmpDir."/".$eStr;
 
 $order="mkdir ".$SaveDir;
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
 
 $TemporaryShit="./TemporaryFilePleaseRemove.tex";
 
 $order="LATEX_RemovePercentLine < ".$File." > ".$TemporaryShit;
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
 
 $order="DimpleCopy ".$SaveDir." ".$TemporaryShit;
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
 
 $order="(cd ".$SaveDir." && mv ".$TemporaryShit." ".$File.")";
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
 
 $order="(cd ".$TmpDir." && tar -c ".$eStr. " | gzip > ".$TheArch.")";
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
 
 $order="rm -f ".$TemporaryShit;
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
 
 
 #

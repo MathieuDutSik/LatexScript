@@ -315,7 +315,11 @@ sub InsertFileInDatabase($)
 $FileLS="/tmp/ListFile";
 $order="ls *.cls *.clo *.sty > ".$FileLS;
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
+
+
 open(INF, $FileLS) or die "impossible to open ".$FileLS;
 while(<INF>)
 {
@@ -326,7 +330,9 @@ while(<INF>)
 close(INF);
 $order="rm -f ".$FileLS;
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
 
 for ($i=2; $i<=scalar(@ARGV); $i++)
 {
@@ -427,7 +433,9 @@ sub MyDirectCopy($$)
     }
     $order="cp ".$FileName1." ".$FileName2;
     print $order."\n";
-    system $order;
+    if (system($order) != 0) {
+	die "Error while doing operation\n";
+    }
 }
 
 

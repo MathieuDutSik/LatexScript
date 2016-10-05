@@ -365,7 +365,9 @@ close(OUTFILE);
 
 my $order="cp ".$FileTMP." ".$FileTex;
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing cp operation of FileTMP to FileTex\n";
+}
 
 
 #
@@ -381,7 +383,9 @@ while (my ($key, $value) = each(%CorrespOldName_NewName)) {
     #
     my $order1="mv ".$file1." ".$file1_extend;
     print $order1."\n";
-    system $order1;
+    if (system($order1) != 0) {
+	die "Error for mv operation\n";
+    }
 }
 
 
@@ -396,5 +400,7 @@ while (my ($key, $value) = each(%CorrespOldName_NewName)) {
     #
     my $order1="mv ".$file1_extend." ".$file2;
     print $order1."\n";
-    system $order1;
+    if (system($order1) != 0) {
+	die "Error while doing mv operation\n";
+    }
 }

@@ -356,7 +356,9 @@ sub InsertFileInDatabase($)
 my $FileLS="/tmp/ListFile";
 my $order="ls *.cls *.clo *.sty > ".$FileLS;
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while listing the files\n";
+}
 open(INF, $FileLS) or die "impossible to open (3) : ".$FileLS;
 while(<INF>)
 {
@@ -367,7 +369,9 @@ while(<INF>)
 close(INF);
 $order="rm -f ".$FileLS;
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while removing FileLS\n";
+}
 
 
 
@@ -583,7 +587,9 @@ for (my $iFile=1; $iFile<=scalar(@ListFileNames); $iFile++)
     {
 	my $order="cp ".$FileName1." ".$FileName2;
 	print $order."\n";
-	system $order;
+	if (system($order) != 0) {
+	    die "Error while doing cp operation\n";
+	}
     }
     else
     {

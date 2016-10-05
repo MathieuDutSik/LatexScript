@@ -465,7 +465,9 @@ sub RealizeFileInsertion($$)
     #
     my $order="cp ".$FilePrev." ".$FileName;
     print $order."\n";
-    system $order;
+    if (system($order) != 0) {
+	die "Error while doing cp operation\n";
+    }
 }
 
 
@@ -508,6 +510,8 @@ for (my $iFile=1; $iFile<=scalar(@ListFileNames); $iFile++)
     {
 	my $order="rm ".$ListFileNames[$iFile-1];
 	print $order."\n";
-	system $order;
+	if (system($order) != 0) {
+	    die "Error while doing rm operation\n";
+	}
     }
 }

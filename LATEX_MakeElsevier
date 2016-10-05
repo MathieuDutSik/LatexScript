@@ -51,7 +51,9 @@ my $order;
 
 $order="mkdir ".$TmpDir;
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error for mkdir operation\n";
+}
 
 
 #
@@ -91,18 +93,24 @@ sub TheCleanUp()
 	my $eDir=$SaveDir.$i;
 	my $order="rm -rf ".$eDir;
 	print $order."\n";
-	system $order;
+	if (system($order) != 0) {
+	    die "Error while doing rm operation\n";
+	}
     }
     #
     my $order;
     #
     $order="rm -rf ".$SaveDir;
     print $order."\n";
-    system $order;
+    if (system($order) != 0) {
+	die "Error while doing rm operation\n";
+    }
     #
     $order="rm -rf ".$TmpDir;
     print $order."\n";
-    system $order;
+    if (system($order) != 0) {
+	die "Error while doing rm operation\n";
+    }
 }
 
 if ($VL[$nb-1] ne "z" || $VL[$nb-2] ne "g" || $VL[$nb-3] ne "\." || $VL[$nb-4] ne "r" || $VL[$nb-5] ne "a" || $VL[$nb-6] ne "t" || $VL[$nb-7] ne "\.")
@@ -124,7 +132,9 @@ if ($TSL[0] ne "/")
 
 $order="mkdir ".$SaveDir1;
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
 
 
 
@@ -138,7 +148,9 @@ system $order;
 
 $order="LATEX_DirectoryUnfold ".$SaveDir1." ".$File;
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
 
 #
 # Merging into a single latex file
@@ -146,11 +158,15 @@ system $order;
 
 $order="(cd ".$TmpDir." && cp -r ".$eDir1." ".$eDir2.")";
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
 
 $order="(cd ".$SaveDir2." && LATEX_FileMerging ".$File.")";
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
 
 #
 # Removal of percent
@@ -158,17 +174,23 @@ system $order;
 
 $order="(cd ".$TmpDir." && cp -r ".$eDir2." ".$eDir3.")";
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
 
 my $LatexTemp=$TmpDir."/temp.tex";
 
 $order="(cd ".$SaveDir3." && LATEX_RemovePercentLine < ".$File." > ".$LatexTemp.")";
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
 
 $order="(cd ".$SaveDir3." && mv ".$LatexTemp." ".$File.")";
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
 
 #
 # Now renaming the figures according to Elsevier standard
@@ -176,11 +198,21 @@ system $order;
 
 $order="(cd ".$TmpDir." && cp -r ".$eDir3." ".$eDir4.")";
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
 
 $order="(cd ".$SaveDir4." && LATEX_FigureFileRenumbering 2 ".$File.")";
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
+
+$order="(cd ".$SaveDir4." && LATEX_BBL_merging ".$File.")";
+print $order."\n";
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
 
 #
 # Copying into the final and creating tar.gz
@@ -188,16 +220,23 @@ system $order;
 
 $order="(cd ".$TmpDir." && cp -r ".$eDir4." ".$eDir.")";
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
+
 my $eArch=$eDir.".tar.gz";
 
 $order="(cd ".$TmpDir." && tar -c ".$eDir." | gzip > ".$eArch.")";
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
 
 $order="(cd ".$TmpDir." && mv ".$eArch." ".$TheArch.")";
 print $order."\n";
-system $order;
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
 
 #
 # Now full cleanup
