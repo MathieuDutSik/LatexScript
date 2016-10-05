@@ -1,0 +1,22 @@
+#!/usr/bin/perl -w
+
+$uu=scalar(@ARGV);
+
+if ($uu ne 1)
+{
+    print "Ever wondered why latex does not print directly\n";
+    print "the error found in the .tex file ...\n";
+    print "Use\n";
+    print "LATEX_BBL_merging [File]\n";
+    print "for that\n";
+    die;
+}
+
+$eFile=$ARGV[0];
+$len=length($eFile);
+$eFileRed=substr($eFile, 0, $len-4);
+
+$eFileTex=$eFileRed.".tex";
+$eFileBbl=$eFileRed.".bbl";
+print "eFileTex=".$eFileTex."\n";
+print "eFileBbl=".$eFileBbl."\n";
