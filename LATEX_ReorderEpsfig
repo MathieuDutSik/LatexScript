@@ -17,7 +17,7 @@ sub ReorderedEpsfigCall($)
     @V3=split("}", $V2[1]);
     $rstl=$V3[0];
     @V4=split(",", $rstl);
-    @OrdOfficial=("file", "figure", "width", "height");
+    @OrdOfficial=("file", "figure", "width", "height", "angle");
     @LCan=();
     for ($iEnt=1; $iEnt<=scalar(@V4); $iEnt++)
     {
@@ -47,11 +47,13 @@ sub ReorderedEpsfigCall($)
 	    if ($pos1 eq -1)
 	    {
 		print "You use entries that do not occur in our list, you need to correct it or the program\n";
+		print "str1=".$V5_1[0]."\n";
 		die;
 	    }
 	    if ($pos2 eq -1)
 	    {
 		print "You use entries that do not occur in our list, you need to correct it or the program\n";
+		print "str2=".$V5_2[0]."\n";
 		die;
 	    }
 	    if ($pos1 > $pos2)

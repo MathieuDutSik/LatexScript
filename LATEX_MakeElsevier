@@ -214,6 +214,19 @@ if (system($order) != 0) {
     die "Error while doing operation\n";
 }
 
+my $TmpFile="/tmp/filebstl.tex";
+$order="(cd ".$SaveDir4." && LATEX_ReorderEpsfig < ".$File." > ".$TmpFile.")";
+print $order."\n";
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
+
+$order="(cd ".$SaveDir4." && mv ".$TmpFile." ".$File.")";
+print $order."\n";
+if (system($order) != 0) {
+    die "Error while doing operation\n";
+}
+
 #
 # Copying into the final and creating tar.gz
 #
