@@ -1,8 +1,9 @@
 #!/usr/bin/perl -w
+use strict;
+use warnings;
 
 
-$uu=scalar(@ARGV);
-
+my $uu=scalar(@ARGV);
 if ($uu ne 1)
 {
     print "LATEX_CheckFigureReference [TexFile]\n";
@@ -22,12 +23,12 @@ if ($uu ne 1)
 sub PercentSplitting($)
 {
     my ($strToSplit) = @_;
-    @U=split("%", $strToSplit);
-    $retPercentSplit=$U[0];
-    for ($idxSplit=1; $idxSplit<=scalar(@U)-1; $idxSplit++)
+    my @U=split("%", $strToSplit);
+    my $retPercentSplit=$U[0];
+    for (my $idxSplit=1; $idxSplit<=scalar(@U)-1; $idxSplit++)
     {
-	@Lsplit=split("", $U[$idxSplit-1]);
-	$len=scalar(@Lsplit);
+	my @Lsplit=split("", $U[$idxSplit-1]);
+	my $len=scalar(@Lsplit);
 	if ($len > 0 && $Lsplit[$len-1] ne "\\")
 	{
 	    $retPercentSplit=$retPercentSplit."%".$U[$idxSplit];
@@ -44,42 +45,42 @@ sub PercentSplitting($)
 
 
 
-$eFile=$ARGV[0];
+my $eFile=$ARGV[0];
 open(IN, $eFile) or die "impossible to open ".$eFile;
-@ListLines=<IN>;
+my @ListLines=<IN>;
 close(IN);
 
-for ($iLine=1; $iLine<=scalar(@ListLines); $iLine++)
+for (my $iLine=0; $iLine<scalar(@ListLines); $iLine++)
 {
-    $eLine=$ListLines[$iLine-1];
-    $eLineB=PercentSplitting($eLine);
-    $ListLines[$iLine-1]=$eLineB;
+    my $eLine=$ListLines[$iLine];
+    my $eLineB=PercentSplitting($eLine);
+    $ListLines[$iLine]=$eLineB;
 #    print "eLineB=".$eLineB;
 }
 
 
 
-$nbLabel1=0;
-@ListLabelInFigure=();
-@ListLabelInFigureLineNr=();
-$nbLabel2=0;
-@ListLabelInTable=();
-@ListLabelInTableLineNr=();
-$nbLabel3=0;
-@ListLabelInFigureTable=();
-@ListLabelInFigureTableLineNr=();
-$nbLabel4=0;
-@ListLabelInRef=();
-@ListLabelInRefLineNr=();
+my $nbLabel1=0;
+my @ListLabelInFigure=();
+my @ListLabelInFigureLineNr=();
+my $nbLabel2=0;
+my @ListLabelInTable=();
+my @ListLabelInTableLineNr=();
+my $nbLabel3=0;
+my @ListLabelInFigureTable=();
+my @ListLabelInFigureTableLineNr=();
+my $nbLabel4=0;
+my @ListLabelInRef=();
+my @ListLabelInRefLineNr=();
 
-$nbLine=scalar(@ListLines);
-$IsInFigure=0;
-$IsInTable=0;
-for ($iLine=1; $iLine<=$nbLine; $iLine++)
+my $nbLine=scalar(@ListLines);
+my $IsInFigure=0;
+my $IsInTable=0;
+for (my $iLine=1; $iLine<=$nbLine; $iLine++)
 {
-    $eLine=$ListLines[$iLine-1];
+    my $eLine=$ListLines[$iLine-1];
 #    @TOTu=split("", $eLine);
-    @U=split("input", $eLine);
+    my @U=split("input", $eLine);
     if (scalar(@U) > 0)
     {
 	if ($U[0] eq "\\")
@@ -90,45 +91,45 @@ for ($iLine=1; $iLine<=$nbLine; $iLine++)
     }
     #
     #
-    @U=split("begin{figure", $eLine);
-    if (scalar(@U) > 2)
+    my @U2=split("begin{figure", $eLine);
+    if (scalar(@U2) > 2)
     {
 	print "error, two times \"begin{figure\" in one line\n";
 	die;
     }
-    if (scalar(@U) > 1)
+    if (scalar(@U2) > 1)
     {
 	$IsInFigure=1;
     }
-    @U=split("end{figure", $eLine);
-    if (scalar(@U) > 2)
+    my @U3=split("end{figure", $eLine);
+    if (scalar(@U3) > 2)
     {
 	print "error, two times \"end{figure\" in one line\n";
 	die;
     }
-    if (scalar(@U) > 1)
+    if (scalar(@U3) > 1)
     {
 	$IsInFigure=0;
     }
     #
     #
-    @U=split("begin{table", $eLine);
-    if (scalar(@U) > 2)
+    my @U4=split("begin{table", $eLine);
+    if (scalar(@U4) > 2)
     {
 	print "error, two times \"begin{table\" in one line\n";
 	die;
     }
-    if (scalar(@U) > 1)
+    if (scalar(@U4) > 1)
     {
 	$IsInTable=1;
     }
-    @U=split("end{table", $eLine);
-    if (scalar(@U) > 2)
+    my @U5=split("end{table", $eLine);
+    if (scalar(@U5) > 2)
     {
 	print "error, two times \"end{table\" in one line\n";
 	die;
     }
-    if (scalar(@U) > 1)
+    if (scalar(@U5) > 1)
     {
 	$IsInTable=0;
     }
@@ -136,17 +137,17 @@ for ($iLine=1; $iLine<=$nbLine; $iLine++)
     #
     if ($IsInFigure == 1)
     {
-	@U=split("label{", $eLine);
-	if (scalar(@U) > 2)
+	my @U6=split("label{", $eLine);
+	if (scalar(@U6) > 2)
 	{
 	    print "error, two times \"label{\" in one line\n";
 	    die;
 	}
-	if (scalar(@U) > 1)
+	if (scalar(@U6) > 1)
 	{
-	    $str=$U[1];
-	    @U2=split("}", $str);
-	    $eLabel=$U2[0];
+	    my $str=$U6[1];
+	    my @U7=split("}", $str);
+	    my $eLabel=$U7[0];
 	    $nbLabel1++;
 	    $ListLabelInFigure[$nbLabel1-1]=$eLabel;
 	    $ListLabelInFigureLineNr[$nbLabel1-1]=$iLine;
@@ -159,17 +160,17 @@ for ($iLine=1; $iLine<=$nbLine; $iLine++)
     #
     if ($IsInTable == 1)
     {
-	@U=split("label{", $eLine);
-	if (scalar(@U) > 2)
+	my @U8=split("label{", $eLine);
+	if (scalar(@U8) > 2)
 	{
 	    print "error, two times \"label{\" in one line\n";
 	    die;
 	}
-	if (scalar(@U) > 1)
+	if (scalar(@U8) > 1)
 	{
-	    $str=$U[1];
-	    @U2=split("}", $str);
-	    $eLabel=$U2[0];
+	    my $str=$U8[1];
+	    my @U9=split("}", $str);
+	    my $eLabel=$U9[0];
 	    $nbLabel2++;
 	    $ListLabelInTable[$nbLabel2-1]=$eLabel;
 	    $ListLabelInTableLineNr[$nbLabel2-1]=$iLine;
@@ -178,17 +179,17 @@ for ($iLine=1; $iLine<=$nbLine; $iLine++)
 	    $ListLabelInFigureTableLineNr[$nbLabel3-1]=$iLine;
 	}
     }
-
-
-    @U=split("ref{", $eLine);
-    $nbEnt=scalar(@U);
-    for ($i=2; $i<=$nbEnt; $i++)
+    #
+    #
+    my @U10=split("ref{", $eLine);
+    my $nbEnt=scalar(@U10);
+    for (my $i=2; $i<=$nbEnt; $i++)
     {
-	$eStr=$U[$i-1];
-	@W=split("}", $eStr);
-	$fLabel=$W[0];
-	$IsMatch=0;
-	for ($iLabel=1; $iLabel<=$nbLabel4; $iLabel++)
+	my $eStr=$U10[$i-1];
+	my @W=split("}", $eStr);
+	my $fLabel=$W[0];
+	my $IsMatch=0;
+	for (my $iLabel=1; $iLabel<=$nbLabel4; $iLabel++)
 	{
 	    if ($ListLabelInRef[$iLabel-1] eq $fLabel)
 	    {
@@ -203,21 +204,21 @@ for ($iLine=1; $iLine<=$nbLine; $iLine++)
 	}
     }
 }
-$DoCheckOrderFigureTable=0;
-$DoCheckOrderFigure=1;
-$DoCheckOrderTable=1;
+my $DoCheckOrderFigureTable=0;
+my $DoCheckOrderFigure=1;
+my $DoCheckOrderTable=1;
 
 
 if ($DoCheckOrderFigureTable == 1)
 {
-    $IsCorrect=1;
-    @ListPositionFigureTable=();
-    for ($i=1; $i<=$nbLabel3; $i++)
+    my $IsCorrect=1;
+    my @ListPositionFigureTable=();
+    for (my $i=1; $i<=$nbLabel3; $i++)
     {
-	$ThePosition=-1;
-	$eLabel=$ListLabelInFigureTable[$i-1];
-	$iLineDef=$ListLabelInFigureTableLineNr[$i-1];
-	for ($j=1; $j<=$nbLabel4; $j++)
+	my $ThePosition=-1;
+	my $eLabel=$ListLabelInFigureTable[$i-1];
+	my $iLineDef=$ListLabelInFigureTableLineNr[$i-1];
+	for (my $j=1; $j<=$nbLabel4; $j++)
 	{
 	    if ($ThePosition == -1)
 	    {
@@ -227,28 +228,28 @@ if ($DoCheckOrderFigureTable == 1)
 		}
 	    }
 	}
-    if ($ThePosition == -1)
-    {
-	print "The label ".$eLabel." defined at line ".$iLineDef." is never cited\n";
-	$IsCorrect=0;
-    }
+	if ($ThePosition == -1)
+	{
+	    print "The label ".$eLabel." defined at line ".$iLineDef." is never cited\n";
+	    $IsCorrect=0;
+	}
 	$ListPositionFigureTable[$i-1]=$ThePosition;
     }
-    for ($i2=2; $i2<=$nbLabel3; $i2++)
+    for (my $i2=2; $i2<=$nbLabel3; $i2++)
     {
-	$i1=$i2-1;
-	$iPos1=$ListPositionFigureTable[$i1-1];
-	$iPos2=$ListPositionFigureTable[$i2-1];
+	my $i1=$i2-1;
+	my $iPos1=$ListPositionFigureTable[$i1-1];
+	my $iPos2=$ListPositionFigureTable[$i2-1];
 	if ($iPos1 > 0 && $iPos2 > 0)
 	{
 	    if ($iPos1 > $iPos2)
 	    {
-		$eLabel1=$ListLabelInFigureTable[$i1-1];
-		$eLabel2=$ListLabelInFigureTable[$i2-1];
-		$iLine1=$ListLabelInFigureTableLineNr[$i1-1];
-		$iLine2=$ListLabelInFigureTableLineNr[$i2-1];
-		$iLineRef1=$ListLabelInRefLineNr[$iPos1-1];
-		$iLineRef2=$ListLabelInRefLineNr[$iPos2-1];
+		my $eLabel1=$ListLabelInFigureTable[$i1-1];
+		my $eLabel2=$ListLabelInFigureTable[$i2-1];
+		my $iLine1=$ListLabelInFigureTableLineNr[$i1-1];
+		my $iLine2=$ListLabelInFigureTableLineNr[$i2-1];
+		my $iLineRef1=$ListLabelInRefLineNr[$iPos1-1];
+		my $iLineRef2=$ListLabelInRefLineNr[$iPos2-1];
 		print "Label ".$eLabel1." is defined before label ".$eLabel2."\n";
 		print "   at lines ".$iLine1." and ".$iLine2."\n";
 		print "   Yet it is cited after\n";
@@ -265,7 +266,7 @@ if ($DoCheckOrderFigureTable == 1)
     {
 	print "Some errors need to be corrected\n";
 	print "Order of citation of reference is as follows\n";
-	for ($iLabel=1; $iLabel<=scalar(@ListLabelInRef); $iLabel++)
+	for (my $iLabel=1; $iLabel<=scalar(@ListLabelInRef); $iLabel++)
 	{
 	    print "iLabel=".$iLabel." eLabel=".$ListLabelInRef[$iLabel-1]."\n";
 	}
@@ -275,14 +276,14 @@ if ($DoCheckOrderFigureTable == 1)
 
 if ($DoCheckOrderFigure == 1)
 {
-    $IsCorrect=1;
-    @ListPositionFigure=();
-    for ($i=1; $i<=$nbLabel1; $i++)
+    my $IsCorrect=1;
+    my @ListPositionFigure=();
+    for (my $i=1; $i<=$nbLabel1; $i++)
     {
-	$ThePosition=-1;
-	$eLabel=$ListLabelInFigure[$i-1];
-	$iLineDef=$ListLabelInFigureLineNr[$i-1];
-	for ($j=1; $j<=$nbLabel4; $j++)
+	my $ThePosition=-1;
+	my $eLabel=$ListLabelInFigure[$i-1];
+	my $iLineDef=$ListLabelInFigureLineNr[$i-1];
+	for (my $j=1; $j<=$nbLabel4; $j++)
 	{
 	    if ($ThePosition == -1)
 	    {
@@ -292,28 +293,28 @@ if ($DoCheckOrderFigure == 1)
 		}
 	    }
 	}
-    if ($ThePosition == -1)
-    {
-	print "The label ".$eLabel." defined at line ".$iLineDef." is never cited\n";
+	if ($ThePosition == -1)
+	{
+	    print "The label ".$eLabel." defined at line ".$iLineDef." is never cited\n";
 	$IsCorrect=0;
-    }
+	}
 	$ListPositionFigure[$i-1]=$ThePosition;
     }
-    for ($i2=2; $i2<=$nbLabel1; $i2++)
+    for (my $i2=2; $i2<=$nbLabel1; $i2++)
     {
-	$i1=$i2-1;
-	$iPos1=$ListPositionFigure[$i1-1];
-	$iPos2=$ListPositionFigure[$i2-1];
+	my $i1=$i2-1;
+	my $iPos1=$ListPositionFigure[$i1-1];
+	my $iPos2=$ListPositionFigure[$i2-1];
 	if ($iPos1 > 0 && $iPos2 > 0)
 	{
 	    if ($iPos1 > $iPos2)
 	    {
-		$eLabel1=$ListLabelInFigure[$i1-1];
-		$eLabel2=$ListLabelInFigure[$i2-1];
-		$iLine1=$ListLabelInFigureLineNr[$i1-1];
-		$iLine2=$ListLabelInFigureLineNr[$i2-1];
-		$iLineRef1=$ListLabelInRefLineNr[$iPos1-1];
-		$iLineRef2=$ListLabelInRefLineNr[$iPos2-1];
+		my $eLabel1=$ListLabelInFigure[$i1-1];
+		my $eLabel2=$ListLabelInFigure[$i2-1];
+		my $iLine1=$ListLabelInFigureLineNr[$i1-1];
+		my $iLine2=$ListLabelInFigureLineNr[$i2-1];
+		my $iLineRef1=$ListLabelInRefLineNr[$iPos1-1];
+		my $iLineRef2=$ListLabelInRefLineNr[$iPos2-1];
 		print "Label ".$eLabel1." is defined before label ".$eLabel2."\n";
 		print "   at lines ".$iLine1." and ".$iLine2."\n";
 		print "   Yet it is cited after\n";
@@ -330,7 +331,7 @@ if ($DoCheckOrderFigure == 1)
     {
 	print "Some errors need to be corrected\n";
 	print "Order of citation of reference is as follows\n";
-	for ($iLabel=1; $iLabel<=scalar(@ListLabelInRef); $iLabel++)
+	for (my $iLabel=1; $iLabel<=scalar(@ListLabelInRef); $iLabel++)
 	{
 	    print "iLabel=".$iLabel." eLabel=".$ListLabelInRef[$iLabel-1]."\n";
 	}
@@ -339,14 +340,14 @@ if ($DoCheckOrderFigure == 1)
 
 if ($DoCheckOrderTable == 1)
 {
-    $IsCorrect=1;
-    @ListPositionTable=();
-    for ($i=1; $i<=$nbLabel2; $i++)
+    my $IsCorrect=1;
+    my @ListPositionTable=();
+    for (my $i=1; $i<=$nbLabel2; $i++)
     {
-	$ThePosition=-1;
-	$eLabel=$ListLabelInTable[$i-1];
-	$iLineDef=$ListLabelInTableLineNr[$i-1];
-	for ($j=1; $j<=$nbLabel4; $j++)
+	my $ThePosition=-1;
+	my $eLabel=$ListLabelInTable[$i-1];
+	my $iLineDef=$ListLabelInTableLineNr[$i-1];
+	for (my $j=1; $j<=$nbLabel4; $j++)
 	{
 	    if ($ThePosition == -1)
 	    {
@@ -356,28 +357,28 @@ if ($DoCheckOrderTable == 1)
 		}
 	    }
 	}
-    if ($ThePosition == -1)
-    {
-	print "The label ".$eLabel." defined at line ".$iLineDef." is never cited\n";
-	$IsCorrect=0;
-    }
+	if ($ThePosition == -1)
+	{
+	    print "The label ".$eLabel." defined at line ".$iLineDef." is never cited\n";
+	    $IsCorrect=0;
+	}
 	$ListPositionTable[$i-1]=$ThePosition;
     }
-    for ($i2=2; $i2<=$nbLabel2; $i2++)
+    for (my $i2=2; $i2<=$nbLabel2; $i2++)
     {
-	$i1=$i2-1;
-	$iPos1=$ListPositionTable[$i1-1];
-	$iPos2=$ListPositionTable[$i2-1];
+	my $i1=$i2-1;
+	my $iPos1=$ListPositionTable[$i1-1];
+	my $iPos2=$ListPositionTable[$i2-1];
 	if ($iPos1 > 0 && $iPos2 > 0)
 	{
 	    if ($iPos1 > $iPos2)
 	    {
-		$eLabel1=$ListLabelInTable[$i1-1];
-		$eLabel2=$ListLabelInTable[$i2-1];
-		$iLine1=$ListLabelInTableLineNr[$i1-1];
-		$iLine2=$ListLabelInTableLineNr[$i2-1];
-		$iLineRef1=$ListLabelInRefLineNr[$iPos1-1];
-		$iLineRef2=$ListLabelInRefLineNr[$iPos2-1];
+		my $eLabel1=$ListLabelInTable[$i1-1];
+		my $eLabel2=$ListLabelInTable[$i2-1];
+		my $iLine1=$ListLabelInTableLineNr[$i1-1];
+		my $iLine2=$ListLabelInTableLineNr[$i2-1];
+		my $iLineRef1=$ListLabelInRefLineNr[$iPos1-1];
+		my $iLineRef2=$ListLabelInRefLineNr[$iPos2-1];
 		print "Label ".$eLabel1." is defined before label ".$eLabel2."\n";
 		print "   at lines ".$iLine1." and ".$iLine2."\n";
 		print "   Yet it is cited after\n";
@@ -394,7 +395,7 @@ if ($DoCheckOrderTable == 1)
     {
 	print "Some errors need to be corrected\n";
 	print "Order of citation of reference is as follows\n";
-	for ($iLabel=1; $iLabel<=scalar(@ListLabelInRef); $iLabel++)
+	for (my $iLabel=1; $iLabel<=scalar(@ListLabelInRef); $iLabel++)
 	{
 	    print "iLabel=".$iLabel." eLabel=".$ListLabelInRef[$iLabel-1]."\n";
 	}

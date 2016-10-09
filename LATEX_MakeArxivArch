@@ -1,6 +1,8 @@
 #!/usr/bin/perl -w
+use strict;
+use warnings;
 
-$uu=scalar(@ARGV);
+my $uu=scalar(@ARGV);
 if ($uu ne 2)
 {
     print "LATEX_MakeArxivArch [TheArch] [File]\n";
@@ -17,16 +19,18 @@ if ($uu ne 2)
     die;
 }
 
-$TheArch=$ARGV[0];
-$File=$ARGV[1];
+my $TheArch=$ARGV[0];
+my $File=$ARGV[1];
 
 #
 # determine temporary directory
-$TheRand=int(rand(1000000));
+my $TheRand=int(rand(1000000));
 print "TheRand=".$TheRand."\n";
-$WorkDir="tmp".$TheRand;
+my $WorkDir="tmp".$TheRand;
 print "WorkDir=".$WorkDir."\n";
-$TmpDir="/tmp/".$WorkDir;
+my $TmpDir="/tmp/".$WorkDir;
+
+my $order;
 
 $order="mkdir ".$TmpDir;
 print $order."\n";
@@ -43,14 +47,14 @@ sub TheCleanUp()
     }
 
 }
-@WK=split("", $File);
-$len=scalar(@WK);
+my @WK=split("", $File);
+my $len=scalar(@WK);
+my $FileRed="";
 if ($WK[$len-4] eq "." && $WK[$len-3] eq "t" && $WK[$len-2] eq "e" && $WK[$len-1] eq "x")
 {
-    $FileRed="";
-    for ($iChar=1; $iChar<=$len-4; $iChar++)
+    for (my $iChar=1; $iChar<=$len-4; $iChar++)
     {
-	$eChar=$WK[$iChar-1];
+	my $eChar=$WK[$iChar-1];
 	$FileRed=$FileRed.$eChar;
     }
 }
@@ -67,17 +71,17 @@ else
 
 #
 # determine archive name
-@U=split("/", $TheArch);
-$TheName=$U[scalar(@U)-1];
-@VL=split("", $TheName);
-$nb=scalar(@VL);
+my @U=split("/", $TheArch);
+my $TheName=$U[scalar(@U)-1];
+my @VL=split("", $TheName);
+my $nb=scalar(@VL);
 if ($VL[$nb-1] ne "z" || $VL[$nb-2] ne "g" || $VL[$nb-3] ne "\." || $VL[$nb-4] ne "r" || $VL[$nb-5] ne "a" || $VL[$nb-6] ne "t" || $VL[$nb-7] ne "\.")
 {
     print "Archive name should finish in .tar.gz\n";
     TheCleanUp();
     die;
 }
-@TSL=split("", $TheArch);
+my @TSL=split("", $TheArch);
 if ($TSL[0] ne "/")
 {
     print "The archive name should be an absolute name\n";
@@ -86,14 +90,14 @@ if ($TSL[0] ne "/")
 }
 
 
-$eStr="";
-for ($iChar=1; $iChar<=$nb-7; $iChar++)
+my $eStr="";
+for (my $iChar=1; $iChar<=$nb-7; $iChar++)
 {
     $eStr=$eStr.$VL[$iChar-1];
 }
 print "Archive name=".$eStr."\n";
-$SaveDir=$TmpDir."/".$eStr;
-$CompilDir=$TmpDir."/compil";
+my $SaveDir=$TmpDir."/".$eStr;
+my $CompilDir=$TmpDir."/compil";
 
 $order="mkdir ".$SaveDir;
 print $order."\n";
@@ -101,7 +105,7 @@ if (system($order) != 0) {
     die "Error in mkdir ".$SaveDir;
 }
 
-$TemporaryShit="./TemporaryFilePleaseRemove.tex";
+my $TemporaryShit="./TemporaryFilePleaseRemove.tex";
 
 $order="LATEX_RemovePercentLine < ".$File." > ".$TemporaryShit;
 print $order."\n";
@@ -121,33 +125,34 @@ if (system($order) != 0) {
     die "Error in mv operation";
 }
 
-$TotalFileTex=$SaveDir."/".$File;
+my $TotalFileTex=$SaveDir."/".$File;
 #print "TotalFileTex=".$TotalFileTex."\n";
 #print "File=".$File."\n";
 open(INFILE, $TotalFileTex) or die "impossible to open ".$TotalFileTex;
-@B=<INFILE>;
+my @B=<INFILE>;
 close(INFILE);
-$HasBibliography=0;
-$HasBibliographyStyle=0;
-$nbLine=scalar(@B);
-for ($iLine=1; $iLine<=$nbLine; $iLine++)
+my $HasBibliography=0;
+my $HasBibliographyStyle=0;
+my $nbLine=scalar(@B);
+my ($BiblioFileBlock, $BiblioFileStyle);
+for (my $iLine=1; $iLine<=$nbLine; $iLine++)
 {
     if ($HasBibliography == 0)
     {
-	$line=$B[$iLine-1];
-	@VL=split("bibliography{", $line);
+	my $line=$B[$iLine-1];
+	my @VL=split("bibliography{", $line);
 	if (scalar(@VL) > 1)
 	{
-	    $eStr1=$VL[1];
-	    @VL2=split("}", $eStr1);
+	    my $eStr1=$VL[1];
+	    my @VL2=split("}", $eStr1);
 	    $BiblioFileBlock=$VL2[0];
 	    $HasBibliography=1;
 	}
-	@VL=split("bibliographystyle{", $line);
+	my @VL=split("bibliographystyle{", $line);
 	if (scalar(@VL) > 1)
 	{
-	    $eStr1=$VL[1];
-	    @VL2=split("}", $eStr1);
+	    my $eStr1=$VL[1];
+	    my @VL2=split("}", $eStr1);
 	    $BiblioFileStyle=$VL2[0];
 	    $HasBibliographyStyle=1;
 	}
@@ -176,20 +181,20 @@ if ($HasBibliography eq 1)
 	die "Error in bibtex";
     }
     
-    $eFile1=$SaveDir."/".$FileRed.".bbl";
-    $eFile2=$CompilDir."/".$FileRed.".bbl";
+    my $eFile1=$SaveDir."/".$FileRed.".bbl";
+    my $eFile2=$CompilDir."/".$FileRed.".bbl";
     $order="cp ".$eFile2." ".$eFile1;
     print $order."\n";
     if (system($order) != 0) {
 	die "Error in cp";
     }
 
-    @BIB=split(",", $BiblioFileBlock);
-    $nbBib=scalar(@BIB);
-    for ($iBib=0; $iBib<$nbBib; $iBib++)
+    my @BIB=split(",", $BiblioFileBlock);
+    my $nbBib=scalar(@BIB);
+    for (my $iBib=0; $iBib<$nbBib; $iBib++)
     {
-	$BiblioFile=$BIB[$iBib];
-	$eFile1=$SaveDir."/".$BiblioFile.".bib";
+	my $BiblioFile=$BIB[$iBib];
+	my $eFile1=$SaveDir."/".$BiblioFile.".bib";
 	$order="rm -f ".$eFile1;
 	print $order."\n";
 	if (system($order) != 0) {
@@ -197,7 +202,7 @@ if ($HasBibliography eq 1)
 	}
     }
 
-    $eFile1=$SaveDir."/".$BiblioFileStyle.".bst";
+    my $eFile1=$SaveDir."/".$BiblioFileStyle.".bst";
     $order="rm -f ".$eFile1;
     print $order."\n";
     if (system($order) != 0) {

@@ -1,8 +1,9 @@
 #!/usr/bin/perl -w
+use strict;
+use warnings;
 
 
-$uu=scalar(@ARGV);
-
+my $uu=scalar(@ARGV);
 if ($uu ne 1)
 {
     print "LATEX_CheckReferece [TexFile]\n";
@@ -15,26 +16,26 @@ if ($uu ne 1)
     print "It handles file with input and %\n";
     die;
 }
-@ListStringProblem=();
-@ListStringStatistic=();
+my @ListStringProblem=();
+my @ListStringStatistic=();
 
 
 sub MySplit($$)
 {
     my ($str1, $str2)=@_;
-    @RES=();
-    @SPL1=split("", $str1);
-    $nbChar1=scalar(@SPL1);
-    @SPL2=split("", $str2);
-    $nbChar2=scalar(@SPL2);
+    my @RES=();
+    my @SPL1=split("", $str1);
+    my $nbChar1=scalar(@SPL1);
+    my @SPL2=split("", $str2);
+    my $nbChar2=scalar(@SPL2);
     print "nbChar1=".$nbChar1."  nbChar2=".$nbChar2."\n";
-    $str="";
-    $nbChar=0;
-    $FirstMatch=0;
-    for ($iChar=1; $iChar<=$nbChar2+1-$nbChar1; $iChar++)
+    my $str="";
+    my $nbChar=0;
+    my $FirstMatch=0;
+    for (my $iChar=1; $iChar<=$nbChar2+1-$nbChar1; $iChar++)
     {
-	$test=1;
-	for ($iC=1; $iC<=$nbChar1; $iC++)
+	my $test=1;
+	for (my $iC=1; $iC<=$nbChar1; $iC++)
 	{
 	    if ($SPL2[$iChar+$iC-2] ne $SPL1[$iC-1])
 	    {
@@ -57,15 +58,16 @@ sub MySplit($$)
 	    $nbChar=0;
 	}
     }
-    for ($iChar=$nbChar2+2-$nbChar1; $iChar<=$nbChar2; $iChar++)
+    for (my $iChar=$nbChar2+2-$nbChar1; $iChar<=$nbChar2; $iChar++)
     {
-	$eCharTest=$SPL2[$iChar-1];
+	my $eCharTest=$SPL2[$iChar-1];
 	$str=$str.$SPL2[$iChar-1];
 	print "iChar=".$iChar."  eChar=".$eCharTest."\n";
 	$nbChar++;
     }
     $RES[scalar(@RES)]=$str;
-    @RES2=();
+    my @RES2=();
+    my $iResBegin;
     if ($FirstMatch == 1)
     {
 	$RES2[0]=$RES[0];
@@ -75,12 +77,12 @@ sub MySplit($$)
     {
 	$iResBegin=1;
     }
-    for ($iRes=$iResBegin; $iRes<=scalar(@RES); $iRes++)
+    for (my $iRes=$iResBegin; $iRes<=scalar(@RES); $iRes++)
     {
-	$strRed="";
-	@VSRRED=split("", $RES[$iRes-1]);
-	$nbCharRed=0;
-	for ($iChar=$nbChar1; $iChar<=scalar(@VSRRED); $iChar++)
+	my $strRed="";
+	my @VSRRED=split("", $RES[$iRes-1]);
+	my $nbCharRed=0;
+	for (my $iChar=$nbChar1; $iChar<=scalar(@VSRRED); $iChar++)
 	{
 	    $strRed=$strRed.$VSRRED[$iChar-1];
 	    $nbCharRed++;
@@ -97,14 +99,14 @@ sub MySplit($$)
 sub ExtractFromInputLine($)
 {
     my ($TheLine)=@_;
-    $strSPKbis="\\";
+    my $strSPKbis="\\";
     $strSPKbis=$strSPKbis."input";
-    @V2=split($strSPKbis, $TheLine);
+    my @V2=split($strSPKbis, $TheLine);
     if ($V2[0] ne "\\")
     {
 	return "Z6PO_WVJJFHHNSD";
     }
-    @V3=split("}", $V2[1]);
+    my @V3=split("}", $V2[1]);
     $_=$V3[0];
     s/ //;
     s/{//;
@@ -121,7 +123,7 @@ sub ExtractFileNameFromLine($)
     $_=$line;
     s/\n//;
     $line=$_;
-    @V=split("input", $line);
+    my @V=split("input", $line);
     if (scalar(@V) >2)
     {
 	print "You broke the assumption of only one file per line\n";
@@ -129,7 +131,7 @@ sub ExtractFileNameFromLine($)
     }
     if (scalar(@V) > 1)
     {
-	$file=ExtractFromInputLine($line);
+	my $file=ExtractFromInputLine($line);
 	return $file;
     }
     return "Z6PO_WVJJFHHNSD";
@@ -139,12 +141,12 @@ sub ExtractFileNameFromLine($)
 sub PercentSplitting($)
 {
     my ($strToSplit) = @_;
-    @U=split("%", $strToSplit);
-    $retPercentSplit=$U[0];
-    for ($idxSplit=1; $idxSplit<=scalar(@U)-1; $idxSplit++)
+    my @U=split("%", $strToSplit);
+    my $retPercentSplit=$U[0];
+    for (my $idxSplit=1; $idxSplit<=scalar(@U)-1; $idxSplit++)
     {
-	@Lsplit=split("", $U[$idxSplit-1]);
-	$len=scalar(@Lsplit);
+	my @Lsplit=split("", $U[$idxSplit-1]);
+	my $len=scalar(@Lsplit);
 	if ($len > 0 && $Lsplit[$len-1] ne "\\")
 	{
 	    $retPercentSplit=$retPercentSplit."%".$U[$idxSplit];
@@ -163,13 +165,13 @@ sub ListCall($)
     my ($FileName)=@_;
     my @MatchedSymbol=();
     open(INFILE, $FileName) or die "impossible to open ".$FileName;
-    @B=<INFILE>;
+    my @B=<INFILE>;
     close(INFILE);
-    for ($iLine=1; $iLine<=scalar(@B); $iLine++)
+    for (my $iLine=1; $iLine<=scalar(@B); $iLine++)
     {
-	$line=$B[$iLine-1];
-	$eLinePercSplit=PercentSplitting($line);
-	$file=ExtractFileNameFromLine($eLinePercSplit);
+	my $line=$B[$iLine-1];
+	my $eLinePercSplit=PercentSplitting($line);
+	my $file=ExtractFileNameFromLine($eLinePercSplit);
 	if ($file ne "Z6PO_WVJJFHHNSD")
 	{
 	    $MatchedSymbol[scalar(@MatchedSymbol)]=$file;
@@ -181,15 +183,16 @@ sub ListCall($)
 sub GetTheSuffix($)
 {
     my ($TheLine)=@_;
-    @V2=split("", $TheLine);
-    @ListIndices=();
-    for ($iChar=1; $iChar<=scalar(@V2); $iChar++)
+    my @V2=split("", $TheLine);
+    my @ListIndices=();
+    for (my $iChar=1; $iChar<=scalar(@V2); $iChar++)
     {
 	if ($V2[$iChar-1] eq ".")
 	{
 	    $ListIndices[scalar(@ListIndices)]=$iChar;
 	}
     }
+    my $LimitChar;
     if (scalar(@ListIndices) eq 0)
     {
 	$LimitChar=scalar(@V2)+1;
@@ -198,8 +201,8 @@ sub GetTheSuffix($)
     {
 	$LimitChar=$ListIndices[scalar(@ListIndices)-1]+1;
     }
-    $suffix="";
-    for ($iChar=$LimitChar; $iChar<=scalar(@V2); $iChar++)
+    my $suffix="";
+    for (my $iChar=$LimitChar; $iChar<=scalar(@V2); $iChar++)
     {
 	$suffix=$suffix.$V2[$iChar-1];
     }
@@ -211,15 +214,16 @@ sub GetTheSuffix($)
 sub GetThePrefix($)
 {
     my ($TheLine)=@_;
-    @V2=split("", $TheLine);
-    @ListIndices=();
-    for ($iChar=1; $iChar<=scalar(@V2); $iChar++)
+    my @V2=split("", $TheLine);
+    my @ListIndices=();
+    for (my $iChar=1; $iChar<=scalar(@V2); $iChar++)
     {
 	if ($V2[$iChar-1] eq ".")
 	{
 	    $ListIndices[scalar(@ListIndices)]=$iChar;
 	}
     }
+    my $LimitChar;
     if (scalar(@ListIndices) eq 0)
     {
 	$LimitChar=scalar(@V2)+1;
@@ -228,8 +232,8 @@ sub GetThePrefix($)
     {
 	$LimitChar=$ListIndices[scalar(@ListIndices)-1]-1;
     }
-    $prefix="";
-    for ($iChar=1; $iChar<=$LimitChar; $iChar++)
+    my $prefix="";
+    for (my $iChar=1; $iChar<=$LimitChar; $iChar++)
     {
 	$prefix=$prefix.$V2[$iChar-1];
     }
@@ -239,7 +243,7 @@ sub GetThePrefix($)
 sub ShallFileBeOpenedAtAll($)
 {
     my ($TheLine)=@_;
-    $suffix=GetTheSuffix($TheLine);
+    my $suffix=GetTheSuffix($TheLine);
     if ($suffix eq "")
     {
 	return 0;
@@ -260,13 +264,13 @@ sub ShallFileBeOpenedAtAll($)
 }
 
 
-@ListFileNames=();
-@Openable=();
-@ListFileStatus=();
+my @ListFileNames=();
+my @Openable=();
+my @ListFileStatus=();
 sub FuncInsertInDatabase($)
 {
     my ($FileName)=@_;
-    for ($kFile=1; $kFile<=scalar(@ListFileNames); $kFile++)
+    for (my $kFile=1; $kFile<=scalar(@ListFileNames); $kFile++)
     {
 	if ($ListFileNames[$kFile-1] eq $FileName)
 	{
@@ -275,7 +279,7 @@ sub FuncInsertInDatabase($)
     }
     open(INFILE, $FileName) or die "impossible to open ".$FileName;
     close(INFILE);
-    $insertVal=scalar(@ListFileNames);
+    my $insertVal=scalar(@ListFileNames);
     $ListFileNames[$insertVal]=$FileName;
     $ListFileStatus[$insertVal]=0;
     $Openable[$insertVal]=ShallFileBeOpenedAtAll($FileName);
@@ -283,29 +287,29 @@ sub FuncInsertInDatabase($)
 
 
 
-for ($i=1; $i<=scalar(@ARGV); $i++)
+for (my $i=1; $i<=scalar(@ARGV); $i++)
 {
-    $NewFile=$ARGV[$i-1];
+    my $NewFile=$ARGV[$i-1];
     FuncInsertInDatabase($NewFile);
 }
 while(1)
 {
-    $nbEntry=scalar(@ListFileNames);
-    $IsFinished=1;
-    for ($iFile=1; $iFile<=$nbEntry; $iFile++)
+    my $nbEntry=scalar(@ListFileNames);
+    my $IsFinished=1;
+    for (my $iFile=1; $iFile<=$nbEntry; $iFile++)
     {
-	$FileName=$ListFileNames[$iFile-1];
-	$test=$Openable[$iFile-1];
+	my $FileName=$ListFileNames[$iFile-1];
+	my $test=$Openable[$iFile-1];
 	if ($ListFileStatus[$iFile-1] eq 0)
 	{
 	    $ListFileStatus[$iFile-1]=1;
 	    $IsFinished=0;
 	    if ($test eq 1)
 	    {
-		@VSYMB=ListCall($FileName);
-		for ($iSymb=1; $iSymb<=scalar(@VSYMB); $iSymb++)
+		my @VSYMB=ListCall($FileName);
+		for (my $iSymb=1; $iSymb<=scalar(@VSYMB); $iSymb++)
 		{
-		    $NewFile=$VSYMB[$iSymb-1];
+		    my $NewFile=$VSYMB[$iSymb-1];
 		    FuncInsertInDatabase($NewFile);
 		}
 	    }
@@ -319,13 +323,13 @@ while(1)
 
 
 
-@LISTREFname=();
-@LISTREFtype=();
-@LISTREFnr=();
+my @LISTREFname=();
+my @LISTREFtype=();
+my @LISTREFnr=();
 sub FuncInsertRef($$)
 {
     my ($TheWorkCit, $TheType) = @_;
-    for ($jCit=1; $jCit<=scalar(@LISTREFname); $jCit++)
+    for (my $jCit=1; $jCit<=scalar(@LISTREFname); $jCit++)
     {
 	if ($LISTREFname[$jCit-1] eq $TheWorkCit && $LISTREFtype[$jCit-1] eq $TheType)
 	{
@@ -333,33 +337,33 @@ sub FuncInsertRef($$)
 	    return;
 	}
     }
-    $nb=scalar(@LISTREFname);
+    my $nb=scalar(@LISTREFname);
     $LISTREFname[$nb]=$TheWorkCit;
     $LISTREFtype[$nb]=$TheType;
     $LISTREFnr[$nb]=1;
 }
 
 
-for ($iFile=1; $iFile<=$nbEntry; $iFile++)
+for (my $iFile=1; $iFile<=scalar(@ListFileNames); $iFile++)
 {
-    $FileName=$ListFileNames[$iFile-1];
-    $test=$Openable[$iFile-1];
+    my $FileName=$ListFileNames[$iFile-1];
+    my $test=$Openable[$iFile-1];
     if ($test eq 1)
     {
 	open(INFILE, $FileName);
 #	print "open FileName=".$FileName."\n";
-	$IsInTheorem=0;
-	$IsInTable=0;
-	$IsInFigure=0;
-	$IsInEquation=0;
-	$IsInEquationStar=0;
-	$iLine=0;
+	my $IsInTheorem=0;
+	my $IsInTable=0;
+	my $IsInFigure=0;
+	my $IsInEquation=0;
+	my $IsInEquationStar=0;
+	my $iLine=0;
 	while(<INFILE>)
 	{
-	    $eLine=$_;
+	    my $eLine=$_;
 	    $iLine++;
-	    $strSplPerc=PercentSplitting($eLine);
-	    @L2=split("begin{", $strSplPerc);
+	    my $strSplPerc=PercentSplitting($eLine);
+	    my @L2=split("begin{", $strSplPerc);
 	    if (scalar(@L2) > 2)
 	    {
 		print "You should put one begin per line\n";
@@ -367,7 +371,7 @@ for ($iFile=1; $iFile<=$nbEntry; $iFile++)
 	    }
 	    if (scalar(@L2) == 2)
 	    {
-		@L3=split("}", $L2[1]);
+		my @L3=split("}", $L2[1]);
 		if ($L3[0] eq "theorem" || $L3[0] eq "corollary" || $L3[0] eq "proposition" || $L3[0] eq "lemma" || $L3[0] eq "problem" || $L3[0] eq "definition" || $L3[0] eq "conjecture" || $L3[0] eq "remark" || $L3[0] eq "problem")
 		{
 		    $IsInTheorem=1;
@@ -375,10 +379,10 @@ for ($iFile=1; $iFile<=$nbEntry; $iFile++)
 		if ($L3[0] eq "equation")
 		{
 		    $IsInEquation=1;
-		    @L2label=split("label{", $strSplPerc);
+		    my @L2label=split("label{", $strSplPerc);
 		    if (scalar(@L2label) eq 1)
 		    {
-			$stringPb="In file ".$FileName." line ".$iLine." we have equation but no label\n";
+			my $stringPb="In file ".$FileName." line ".$iLine." we have equation but no label\n";
 			$ListStringProblem[scalar(@ListStringProblem)]=$stringPb;
 		    }
 		}
@@ -396,7 +400,7 @@ for ($iFile=1; $iFile<=$nbEntry; $iFile++)
 		}
 	    }
 	    #
-	    @L2=split("end{", $strSplPerc);
+	    my @L2=split("end{", $strSplPerc);
 	    if (scalar(@L2) > 2)
 	    {
 		print "You should put one begin per line\n";
@@ -404,7 +408,7 @@ for ($iFile=1; $iFile<=$nbEntry; $iFile++)
 	    }
 	    if (scalar(@L2) == 2)
 	    {
-		@L3=split("}", $L2[1]);
+		my @L3=split("}", $L2[1]);
 		if ($L3[0] eq "theorem" || $L3[0] eq "corollary" || $L3[0] eq "proposition" || $L3[0] eq "lemma" || $L3[0] eq "problem" || $L3[0] eq "definition" || $L3[0] eq "conjecture" || $L3[0] eq "remark" || $L3[0] eq "problem")
 		{
 		    $IsInTheorem=0;
@@ -435,7 +439,7 @@ for ($iFile=1; $iFile<=$nbEntry; $iFile++)
 	    }
 	    if (scalar(@L2) == 2)
 	    {
-		@L3=split("}", $L2[1]);
+		my @L3=split("}", $L2[1]);
 		if ($IsInEquation eq 1)
 		{
 		    FuncInsertRef($L3[0], "equation");
@@ -467,10 +471,11 @@ for ($iFile=1; $iFile<=$nbEntry; $iFile++)
 	    @L2=split("ref{", $strSplPerc);
 	    if (scalar(@L2) > 1)
 	    {
-		for ($iL2=1; $iL2<=scalar(@L2)-1; $iL2++)
+		for (my $iL2=1; $iL2<=scalar(@L2)-1; $iL2++)
 		{
-		    @Lspl=split("", $L2[$iL2-1]);
-		    $len=scalar(@Lspl);
+		    my @Lspl=split("", $L2[$iL2-1]);
+		    my $len=scalar(@Lspl);
+		    my $typeref;
 		    if ($len >=3 && $Lspl[$len-3] eq "\\" && $Lspl[$len-2] eq "e" && $Lspl[$len-1] eq "q")
 		    {
 			$typeref="eqref";
@@ -486,8 +491,8 @@ for ($iFile=1; $iFile<=$nbEntry; $iFile++)
 			    $typeref="unknown";
 			}
 		    }
-		    @Lspl2=split("}", $L2[$iL2]);
-		    $refName=$Lspl2[0];
+		    my @Lspl2=split("}", $L2[$iL2]);
+		    my $refName=$Lspl2[0];
 		    FuncInsertRef($refName, $typeref);
 		}
 	    }
@@ -497,16 +502,16 @@ for ($iFile=1; $iFile<=$nbEntry; $iFile++)
     }
 }
 
-@LISTREFnature=();
-for ($iCit=1; $iCit<=scalar(@LISTREFname); $iCit++)
+my @LISTREFnature=();
+for (my $iCit=1; $iCit<=scalar(@LISTREFname); $iCit++)
 {
-    $TheCit=$LISTREFname[$iCit-1];
-    $TheNature=$LISTREFtype[$iCit-1];
-    $eNature="unset";
+    my $TheCit=$LISTREFname[$iCit-1];
+    my $TheNature=$LISTREFtype[$iCit-1];
+    my $eNature="unset";
     if ($TheNature ne "ref" || $TheNature ne "eqref" || $TheNature ne "unknown")
     {
 	$eNature="unset";
-	for ($jCit=1; $jCit<=scalar(@LISTREFname); $jCit++)
+	for (my $jCit=1; $jCit<=scalar(@LISTREFname); $jCit++)
 	{
 	    if ($iCit ne $jCit)
 	    {
@@ -518,41 +523,40 @@ for ($iCit=1; $iCit<=scalar(@LISTREFname); $iCit++)
 	}
 	if ($TheNature eq "theorem" && $eNature eq "eqref")
 	{
-	    $stringPb="Reference ".$TheCit." is used for theorem but with eqref\n";
+	    my $stringPb="Reference ".$TheCit." is used for theorem but with eqref\n";
 	    $ListStringProblem[scalar(@ListStringProblem)]=$stringPb;
 	}
 	if ($TheNature eq "table" && $eNature eq "eqref")
 	{
-	    $stringPb="Reference ".$TheCit." is used for table but with eqref\n";
+	    my $stringPb="Reference ".$TheCit." is used for table but with eqref\n";
 	    $ListStringProblem[scalar(@ListStringProblem)]=$stringPb;
 	}
 	if ($TheNature eq "figure" && $eNature eq "eqref")
 	{
-	    $stringPb="Reference ".$TheCit." is used for figure but with eqref\n";
+	    my $stringPb="Reference ".$TheCit." is used for figure but with eqref\n";
 	    $ListStringProblem[scalar(@ListStringProblem)]=$stringPb;
 	}
 	if ($TheNature eq "equationStar")
 	{
-	    $stringPb="Maybe we should not put label for equation*, here label=".$TheCit."\n";
+	    my $stringPb="Maybe we should not put label for equation*, here label=".$TheCit."\n";
 	    $ListStringProblem[scalar(@ListStringProblem)]=$stringPb;
 	}
 	if ($TheNature eq "equation" && $eNature eq "ref")
 	{
-	    $stringPb="Reference ".$TheCit." is used for equation but with ref\n";
+	    my $stringPb="Reference ".$TheCit." is used for equation but with ref\n";
 	    $ListStringProblem[scalar(@ListStringProblem)]=$stringPb;
 	}
 	if ($TheNature eq "equation" && $eNature eq "unset")
 	{
-	    $stringPb="Reference ".$TheCit." is used for equation but never used\n";
+	    my $stringPb="Reference ".$TheCit." is used for equation but never used\n";
 	    $ListStringProblem[scalar(@ListStringProblem)]=$stringPb;
 	}
-
     }
     $LISTREFnature[$iCit-1]=$eNature;
 }
 
 
-for ($iStat=1; $iStat<=scalar(@ListStringStatistic); $iStat++)
+for (my $iStat=1; $iStat<=scalar(@ListStringStatistic); $iStat++)
 {
 #    $eStat=$ListStringStatistic[$iStat-1]
 #    print $eStat;
@@ -565,9 +569,9 @@ if (scalar(@ListStringProblem) eq 0)
 else
 {
     print "List of found problems\n";
-    for ($iPb=1; $iPb<=scalar(@ListStringProblem); $iPb++)
+    for (my $iPb=1; $iPb<=scalar(@ListStringProblem); $iPb++)
     {
-	$ePb=$ListStringProblem[$iPb-1];
+	my $ePb=$ListStringProblem[$iPb-1];
 	print $ePb;
     }
 }

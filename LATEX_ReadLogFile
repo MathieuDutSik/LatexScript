@@ -1,7 +1,8 @@
 #!/usr/bin/perl -w
+use strict;
+use warnings;
 
-$uu=scalar(@ARGV);
-
+my $uu=scalar(@ARGV);
 if ($uu eq 0)
 {
     print "Ever wondered why latex does not print directly\n";
@@ -12,60 +13,60 @@ if ($uu eq 0)
     die;
 }
 
-$nbFile=$uu;
+my $nbFile=$uu;
 
-for ($iFile=1; $iFile<=$nbFile; $iFile++)
+for (my $iFile=1; $iFile<=$nbFile; $iFile++)
 {
-    $eFile=$ARGV[$iFile-1];
+    my $eFile=$ARGV[$iFile-1];
     open(INFILE, $eFile) or die "impossible to open ".$eFile;
-    @U=<INFILE>;
+    my @U=<INFILE>;
     close(INFILE);
     #
-    @MultiplyDefined=();
-    @Undefined=();
-    $nbLine=scalar(@U);
-    for ($iLine=1; $iLine<=$nbLine; $iLine++)
+    my @MultiplyDefined=();
+    my @Undefined=();
+    my $nbLine=scalar(@U);
+    for (my $iLine=1; $iLine<=$nbLine; $iLine++)
     {
-	$eLine=$U[$iLine-1];
-	@S=split("multiply define", $eLine);
-	$nbS=scalar(@S);
+	my $eLine=$U[$iLine-1];
+	my @S=split("multiply define", $eLine);
+	my $nbS=scalar(@S);
 	if ($nbS > 1)
 	{
-	    @S2=split("'", $eLine);
-	    $str2=$S2[0];
-	    @S3=split("`", $str2);
-	    $str3=$S3[1];
+	    my @S2=split("'", $eLine);
+	    my $str2=$S2[0];
+	    my @S3=split("`", $str2);
+	    my $str3=$S3[1];
 	    $MultiplyDefined[scalar(@MultiplyDefined)]=$str3;
 	}
-	@S=split("ndefined on input line", $eLine);
-	$nbS=scalar(@S);
+	my @Sb=split("ndefined on input line", $eLine);
+	my $nbSb=scalar(@Sb);
 	if ($nbS > 1)
 	{
-	    @S2=split("'", $eLine);
-	    $str2=$S2[0];
-	    @S3=split("`", $str2);
-	    $str3=$S3[1];
+	    my @S2=split("'", $eLine);
+	    my $str2=$S2[0];
+	    my @S3=split("`", $str2);
+	    my $str3=$S3[1];
 	    $Undefined[scalar(@Undefined)]=$str3;
 	}
     }
     print "For file=".$eFile."\n";
-    $nbMult=scalar(@MultiplyDefined);
+    my $nbMult=scalar(@MultiplyDefined);
     if ($nbMult > 0)
     {
 	print "We have ".$nbMult." multiple definition\n";
-	for ($iMult=1; $iMult<=$nbMult; $iMult++)
+	for (my $iMult=1; $iMult<=$nbMult; $iMult++)
 	{
-	    $str=$MultiplyDefined[$iMult-1];
+	    my $str=$MultiplyDefined[$iMult-1];
 	    print $iMult."/".$nbMult." label=".$str."\n";
 	}
     }
-    $nbUndef=scalar(@Undefined);
+    my $nbUndef=scalar(@Undefined);
     if ($nbUndef > 0)
     {
 	print "We have ".$nbUndef." undefined labels\n";
-	for ($iUndef=1; $iUndef<=$nbUndef; $iUndef++)
+	for (my $iUndef=1; $iUndef<=$nbUndef; $iUndef++)
 	{
-	    $str=$Undefined[$iUndef-1];
+	    my $str=$Undefined[$iUndef-1];
 	    print $iUndef."/".$nbUndef." label=".$str."\n";
 	}
     }

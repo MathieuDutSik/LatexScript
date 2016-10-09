@@ -1,6 +1,8 @@
 #!/usr/bin/perl -w
+use strict;
+use warnings;
 
-$uu=scalar(@ARGV);
+my $uu=scalar(@ARGV);
 if ($uu ne 2)
 {
     print "LATEX_MakeMinimalWorkArxiv [TheArch] [File]\n";
@@ -17,17 +19,19 @@ if ($uu ne 2)
     die;
 }
 
-$TheArch=$ARGV[0];
-$File=$ARGV[1];
+my $TheArch=$ARGV[0];
+my $File=$ARGV[1];
 
 #
 # determine temporary directory
-$TheRand=int(rand(1000000));
+my $TheRand=int(rand(1000000));
 print "TheRand=".$TheRand."\n";
-$WorkDir="tmp".$TheRand;
+my $WorkDir="tmp".$TheRand;
 print "WorkDir=".$WorkDir."\n";
-$TmpDir="/tmp/".$WorkDir;
-
+my $TmpDir="/tmp/".$WorkDir;
+#
+my $order;
+#
 $order="mkdir ".$TmpDir;
 print $order."\n";
 if (system($order) != 0) {
@@ -47,17 +51,17 @@ sub TheCleanUp()
 
 #
 # determine archive name
-@U=split("/", $TheArch);
-$TheName=$U[scalar(@U)-1];
-@VL=split("", $TheName);
-$nb=scalar(@VL);
+my @U=split("/", $TheArch);
+my $TheName=$U[scalar(@U)-1];
+my @VL=split("", $TheName);
+my $nb=scalar(@VL);
 if ($VL[$nb-1] ne "z" || $VL[$nb-2] ne "g" || $VL[$nb-3] ne "\." || $VL[$nb-4] ne "r" || $VL[$nb-5] ne "a" || $VL[$nb-6] ne "t" || $VL[$nb-7] ne "\.")
 {
     print "Archive name should finish in .tar.gz\n";
     TheCleanUp();
     die;
 }
-@TSL=split("", $TheArch);
+my @TSL=split("", $TheArch);
 if ($TSL[0] ne "/")
 {
     print "The archive name should be an absolute name\n";
@@ -66,13 +70,13 @@ if ($TSL[0] ne "/")
 }
 
 
-$eStr="";
-for ($iChar=1; $iChar<=$nb-7; $iChar++)
+my $eStr="";
+for (my $iChar=1; $iChar<=$nb-7; $iChar++)
 {
     $eStr=$eStr.$VL[$iChar-1];
 }
 print "Archive name=".$eStr."\n";
-$SaveDir=$TmpDir."/".$eStr;
+my $SaveDir=$TmpDir."/".$eStr;
 
 $order="mkdir ".$SaveDir;
 print $order."\n";
@@ -80,7 +84,7 @@ if (system($order) != 0) {
     die "Error while doing operation\n";
 }
 
-$TemporaryShit="./TemporaryFilePleaseRemove.tex";
+my $TemporaryShit="./TemporaryFilePleaseRemove.tex";
 
 $order="LATEX_RemovePercentLine < ".$File." > ".$TemporaryShit;
 print $order."\n";

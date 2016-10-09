@@ -1,4 +1,6 @@
 #!/usr/bin/perl -w
+use strict;
+use warnings;
 
 
 # This script takes the standard entry
@@ -6,34 +8,30 @@
 # epsfig being ordered correctly.
 
 
-
-
-
-
 sub ReorderedEpsfigCall($)
 {
     my ($TheLine)=@_;
-    @V2=split("epsfig{", $TheLine);
-    @V3=split("}", $V2[1]);
-    $rstl=$V3[0];
-    @V4=split(",", $rstl);
-    @OrdOfficial=("file", "figure", "width", "height", "angle");
-    @LCan=();
-    for ($iEnt=1; $iEnt<=scalar(@V4); $iEnt++)
+    my @V2=split("epsfig{", $TheLine);
+    my @V3=split("}", $V2[1]);
+    my $rstl=$V3[0];
+    my @V4=split(",", $rstl);
+    my @OrdOfficial=("file", "figure", "width", "height", "angle");
+    my @LCan=();
+    for (my $iEnt=1; $iEnt<=scalar(@V4); $iEnt++)
     {
 	$_=$V4[$iEnt-1];
 	s/ //;
 	$LCan[$iEnt-1]=$_;
     }
-    for ($iEnt=1; $iEnt<scalar(@LCan); $iEnt++)
+    for (my $iEnt=1; $iEnt<scalar(@LCan); $iEnt++)
     {
-	for ($jEnt=$iEnt+1; $jEnt<=scalar(@LCan); $jEnt++)
+	for (my $jEnt=$iEnt+1; $jEnt<=scalar(@LCan); $jEnt++)
 	{
-	    @V5_1=split("=", $LCan[$iEnt-1]);
-	    @V5_2=split("=", $LCan[$jEnt-1]);
-	    $pos1=-1;
-	    $pos2=-1;
-	    for ($iC=1; $iC<=scalar(@OrdOfficial); $iC++)
+	    my @V5_1=split("=", $LCan[$iEnt-1]);
+	    my @V5_2=split("=", $LCan[$jEnt-1]);
+	    my $pos1=-1;
+	    my $pos2=-1;
+	    for (my $iC=1; $iC<=scalar(@OrdOfficial); $iC++)
 	    {
 		if ($OrdOfficial[$iC-1] eq $V5_1[0])
 		{
@@ -58,19 +56,19 @@ sub ReorderedEpsfigCall($)
 	    }
 	    if ($pos1 > $pos2)
 	    {
-		$cha=$LCan[$iEnt-1];
+		my $cha=$LCan[$iEnt-1];
 		$LCan[$iEnt-1]=$LCan[$jEnt-1];
 		$LCan[$jEnt-1]=$cha;
 	    }
 	}
     }
-    $VRES=$LCan[0];
-    for ($iEnt=2; $iEnt<=scalar(@LCan); $iEnt++)
+    my $VRES=$LCan[0];
+    for (my $iEnt=2; $iEnt<=scalar(@LCan); $iEnt++)
     {
 	$VRES=$VRES.", ".$LCan[$iEnt-1];
     }
 #    print "size LCAN=".scalar(@LCan)."\n";
-    $ret=$V2[0]."epsfig{".$VRES."}".$V3[1];
+    my $ret=$V2[0]."epsfig{".$VRES."}".$V3[1];
 #    print $ret;
 #    die;
     return $ret;
@@ -79,8 +77,8 @@ sub ReorderedEpsfigCall($)
 
 while(<STDIN>)
 {
-    $line=$_;
-    @V=split("epsfig", $line);
+    my $line=$_;
+    my @V=split("epsfig", $line);
     if (scalar(@V) >2)
     {
 	print "You broke the assumption of at most one epsfig per line\n";
@@ -88,15 +86,15 @@ while(<STDIN>)
     }
     if (scalar(@V) > 1)
     {
-	@V=split("documentclass", $line);
-	if (scalar(@V) > 1)
+	my @V2=split("documentclass", $line);
+	if (scalar(@V2) > 1)
 	{
 	    return "Z6PO_WVJJFHHNSD";
 	}
-	@W=split("usepackage", $line);
+	my @W=split("usepackage", $line);
 	if (scalar(@W) eq 1)
 	{
-	    $lineNEW=ReorderedEpsfigCall($line);
+	    my $lineNEW=ReorderedEpsfigCall($line);
 	    print $lineNEW;
 	}
 	else

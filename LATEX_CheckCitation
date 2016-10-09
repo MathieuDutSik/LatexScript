@@ -1,8 +1,9 @@
 #!/usr/bin/perl -w
+use strict;
+use warnings;
 
 
-$uu=scalar(@ARGV);
-
+my $uu=scalar(@ARGV);
 if ($uu ne 1)
 {
     print "LATEX_CheckCitation [TexFile]\n";
@@ -24,19 +25,19 @@ if ($uu ne 1)
 sub MySplit($$)
 {
     my ($str1, $str2)=@_;
-    @RES=();
-    @SPL1=split("", $str1);
-    $nbChar1=scalar(@SPL1);
-    @SPL2=split("", $str2);
-    $nbChar2=scalar(@SPL2);
+    my @RES=();
+    my @SPL1=split("", $str1);
+    my $nbChar1=scalar(@SPL1);
+    my @SPL2=split("", $str2);
+    my $nbChar2=scalar(@SPL2);
     print "nbChar1=".$nbChar1."  nbChar2=".$nbChar2."\n";
-    $str="";
-    $nbChar=0;
-    $FirstMatch=0;
-    for ($iChar=1; $iChar<=$nbChar2+1-$nbChar1; $iChar++)
+    my $str="";
+    my $nbChar=0;
+    my $FirstMatch=0;
+    for (my $iChar=1; $iChar<=$nbChar2+1-$nbChar1; $iChar++)
     {
-	$test=1;
-	for ($iC=1; $iC<=$nbChar1; $iC++)
+	my $test=1;
+	for (my $iC=1; $iC<=$nbChar1; $iC++)
 	{
 	    if ($SPL2[$iChar+$iC-2] ne $SPL1[$iC-1])
 	    {
@@ -59,15 +60,16 @@ sub MySplit($$)
 	    $nbChar=0;
 	}
     }
-    for ($iChar=$nbChar2+2-$nbChar1; $iChar<=$nbChar2; $iChar++)
+    for (my $iChar=$nbChar2+2-$nbChar1; $iChar<=$nbChar2; $iChar++)
     {
-	$eCharTest=$SPL2[$iChar-1];
+	my $eCharTest=$SPL2[$iChar-1];
 	$str=$str.$SPL2[$iChar-1];
 	print "iChar=".$iChar."  eChar=".$eCharTest."\n";
 	$nbChar++;
     }
     $RES[scalar(@RES)]=$str;
-    @RES2=();
+    my @RES2=();
+    my $iResBegin;
     if ($FirstMatch == 1)
     {
 	$RES2[0]=$RES[0];
@@ -77,12 +79,12 @@ sub MySplit($$)
     {
 	$iResBegin=1;
     }
-    for ($iRes=$iResBegin; $iRes<=scalar(@RES); $iRes++)
+    for (my $iRes=$iResBegin; $iRes<=scalar(@RES); $iRes++)
     {
-	$strRed="";
-	@VSRRED=split("", $RES[$iRes-1]);
-	$nbCharRed=0;
-	for ($iChar=$nbChar1; $iChar<=scalar(@VSRRED); $iChar++)
+	my $strRed="";
+	my @VSRRED=split("", $RES[$iRes-1]);
+	my $nbCharRed=0;
+	for (my $iChar=$nbChar1; $iChar<=scalar(@VSRRED); $iChar++)
 	{
 	    $strRed=$strRed.$VSRRED[$iChar-1];
 	    $nbCharRed++;
@@ -103,9 +105,9 @@ sub MySplit($$)
 sub ExtractFromInputLine($)
 {
     my ($TheLine)=@_;
-    $strSPKbis="\\";
+    my $strSPKbis="\\";
     $strSPKbis=$strSPKbis."input";
-    @V2=split($strSPKbis, $TheLine);
+    my @V2=split($strSPKbis, $TheLine);
     if ($V2[0] ne "\\")
     {
 	return "Z6PO_WVJJFHHNSD";
@@ -113,7 +115,7 @@ sub ExtractFromInputLine($)
 #	print "You break the rule on the inputs\n";
 #	die;
     }
-    @V3=split("}", $V2[1]);
+    my @V3=split("}", $V2[1]);
     $_=$V3[0];
     s/ //;
     s/{//;
@@ -140,7 +142,7 @@ sub ExtractFileNameFromLine($)
     $_=$line;
     s/\n//;
     $line=$_;
-    @V=split("input", $line);
+    my @V=split("input", $line);
     if (scalar(@V) >2)
     {
 	print "You broke the assumption of only one file per line\n";
@@ -150,7 +152,7 @@ sub ExtractFileNameFromLine($)
     {
 #	print "V[0]=".$V[0]."\n";
 #	print "V[1]=".$V[1]."\n";
-	$file=ExtractFromInputLine($line);
+	my $file=ExtractFromInputLine($line);
 	return $file;
     }
     return "Z6PO_WVJJFHHNSD";
@@ -160,12 +162,12 @@ sub ExtractFileNameFromLine($)
 sub PercentSplitting($)
 {
     my ($strToSplit) = @_;
-    @U=split("%", $strToSplit);
-    $retPercentSplit=$U[0];
-    for ($idxSplit=1; $idxSplit<=scalar(@U)-1; $idxSplit++)
+    my @U=split("%", $strToSplit);
+    my $retPercentSplit=$U[0];
+    for (my $idxSplit=1; $idxSplit<=scalar(@U)-1; $idxSplit++)
     {
-	@Lsplit=split("", $U[$idxSplit-1]);
-	$len=scalar(@Lsplit);
+	my @Lsplit=split("", $U[$idxSplit-1]);
+	my $len=scalar(@Lsplit);
 	if ($len > 0 && $Lsplit[$len-1] ne "\\")
 	{
 	    $retPercentSplit=$retPercentSplit."%".$U[$idxSplit];
@@ -186,13 +188,13 @@ sub ListCall($)
     my ($FileName)=@_;
     my @MatchedSymbol=();
     open(INFILE, $FileName) or die "impossible to open ".$FileName;
-    @B=<INFILE>;
+    my @B=<INFILE>;
     close(INFILE);
-    for ($iLine=1; $iLine<=scalar(@B); $iLine++)
+    for (my $iLine=1; $iLine<=scalar(@B); $iLine++)
     {
-	$line=$B[$iLine-1];
-	$eLinePercSplit=PercentSplitting($line);
-	$file=ExtractFileNameFromLine($eLinePercSplit);
+	my $line=$B[$iLine-1];
+	my $eLinePercSplit=PercentSplitting($line);
+	my $file=ExtractFileNameFromLine($eLinePercSplit);
 	if ($file ne "Z6PO_WVJJFHHNSD")
 	{
 	    $MatchedSymbol[scalar(@MatchedSymbol)]=$file;
@@ -204,15 +206,16 @@ sub ListCall($)
 sub GetTheSuffix($)
 {
     my ($TheLine)=@_;
-    @V2=split("", $TheLine);
-    @ListIndices=();
-    for ($iChar=1; $iChar<=scalar(@V2); $iChar++)
+    my @V2=split("", $TheLine);
+    my @ListIndices=();
+    for (my $iChar=1; $iChar<=scalar(@V2); $iChar++)
     {
 	if ($V2[$iChar-1] eq ".")
 	{
 	    $ListIndices[scalar(@ListIndices)]=$iChar;
 	}
     }
+    my $LimitChar;
     if (scalar(@ListIndices) eq 0)
     {
 	$LimitChar=scalar(@V2)+1;
@@ -221,8 +224,8 @@ sub GetTheSuffix($)
     {
 	$LimitChar=$ListIndices[scalar(@ListIndices)-1]+1;
     }
-    $suffix="";
-    for ($iChar=$LimitChar; $iChar<=scalar(@V2); $iChar++)
+    my $suffix="";
+    for (my $iChar=$LimitChar; $iChar<=scalar(@V2); $iChar++)
     {
 	$suffix=$suffix.$V2[$iChar-1];
     }
@@ -234,15 +237,16 @@ sub GetTheSuffix($)
 sub GetThePrefix($)
 {
     my ($TheLine)=@_;
-    @V2=split("", $TheLine);
-    @ListIndices=();
-    for ($iChar=1; $iChar<=scalar(@V2); $iChar++)
+    my @V2=split("", $TheLine);
+    my @ListIndices=();
+    for (my $iChar=1; $iChar<=scalar(@V2); $iChar++)
     {
 	if ($V2[$iChar-1] eq ".")
 	{
 	    $ListIndices[scalar(@ListIndices)]=$iChar;
 	}
     }
+    my $LimitChar;
     if (scalar(@ListIndices) eq 0)
     {
 	$LimitChar=scalar(@V2)+1;
@@ -251,8 +255,8 @@ sub GetThePrefix($)
     {
 	$LimitChar=$ListIndices[scalar(@ListIndices)-1]-1;
     }
-    $prefix="";
-    for ($iChar=1; $iChar<=$LimitChar; $iChar++)
+    my $prefix="";
+    for (my $iChar=1; $iChar<=$LimitChar; $iChar++)
     {
 	$prefix=$prefix.$V2[$iChar-1];
     }
@@ -262,7 +266,7 @@ sub GetThePrefix($)
 sub ShallFileBeOpenedAtAll($)
 {
     my ($TheLine)=@_;
-    $suffix=GetTheSuffix($TheLine);
+    my $suffix=GetTheSuffix($TheLine);
     if ($suffix eq "")
     {
 	return 0;
@@ -283,13 +287,13 @@ sub ShallFileBeOpenedAtAll($)
 }
 
 
-@ListFileNames=();
-@Openable=();
-@ListFileStatus=();
+my @ListFileNames=();
+my @Openable=();
+my @ListFileStatus=();
 sub FuncInsertInDatabase($)
 {
     my ($FileName)=@_;
-    for ($kFile=1; $kFile<=scalar(@ListFileNames); $kFile++)
+    for (my $kFile=1; $kFile<=scalar(@ListFileNames); $kFile++)
     {
 	if ($ListFileNames[$kFile-1] eq $FileName)
 	{
@@ -298,7 +302,7 @@ sub FuncInsertInDatabase($)
     }
     open(INFILE, $FileName) or die "impossible to open ".$FileName;
     close(INFILE);
-    $insertVal=scalar(@ListFileNames);
+    my $insertVal=scalar(@ListFileNames);
     $ListFileNames[$insertVal]=$FileName;
     $ListFileStatus[$insertVal]=0;
     $Openable[$insertVal]=ShallFileBeOpenedAtAll($FileName);
@@ -306,31 +310,31 @@ sub FuncInsertInDatabase($)
 
 
 
-for ($i=1; $i<=scalar(@ARGV); $i++)
+for (my $i=1; $i<=scalar(@ARGV); $i++)
 {
-    $NewFile=$ARGV[$i-1];
+    my $NewFile=$ARGV[$i-1];
     FuncInsertInDatabase($NewFile);
 }
 
 
 while(1)
 {
-    $nbEntry=scalar(@ListFileNames);
-    $IsFinished=1;
-    for ($iFile=1; $iFile<=$nbEntry; $iFile++)
+    my $nbEntry=scalar(@ListFileNames);
+    my $IsFinished=1;
+    for (my $iFile=1; $iFile<=$nbEntry; $iFile++)
     {
-	$FileName=$ListFileNames[$iFile-1];
-	$test=$Openable[$iFile-1];
+	my $FileName=$ListFileNames[$iFile-1];
+	my $test=$Openable[$iFile-1];
 	if ($ListFileStatus[$iFile-1] eq 0)
 	{
 	    $ListFileStatus[$iFile-1]=1;
 	    $IsFinished=0;
 	    if ($test eq 1)
 	    {
-		@VSYMB=ListCall($FileName);
-		for ($iSymb=1; $iSymb<=scalar(@VSYMB); $iSymb++)
+		my @VSYMB=ListCall($FileName);
+		for (my $iSymb=1; $iSymb<=scalar(@VSYMB); $iSymb++)
 		{
-		    $NewFile=$VSYMB[$iSymb-1];
+		    my $NewFile=$VSYMB[$iSymb-1];
 		    FuncInsertInDatabase($NewFile);
 		}
 	    }
@@ -344,17 +348,17 @@ while(1)
 
 
 
-@LISTREF=();
-@NumberDEF=();
-@NumberCIT=();
-@PositionBIBITEM=();
-@PositionCITE=();
-$idxCite=0;
-$idxBibitem=0;
+my @LISTREF=();
+my @NumberDEF=();
+my @NumberCIT=();
+my @PositionBIBITEM=();
+my @PositionCITE=();
+my $idxCite=0;
+my $idxBibitem=0;
 sub FuncInsertRef($$)
 {
     my ($TheWorkCit, $status) = @_;
-    for ($jCit=1; $jCit<=scalar(@LISTREF); $jCit++)
+    for (my $jCit=1; $jCit<=scalar(@LISTREF); $jCit++)
     {
 	if ($LISTREF[$jCit-1] eq $TheWorkCit)
 	{
@@ -379,7 +383,7 @@ sub FuncInsertRef($$)
 	    return;
 	}
     }
-    $insertVal=scalar(@LISTREF);
+    my $insertVal=scalar(@LISTREF);
     $LISTREF[$insertVal]=$TheWorkCit;
     if ($status eq "cite")
     {
@@ -403,44 +407,44 @@ sub FuncInsertRef($$)
 sub FuncReadLineAndInsert($)
 {
     my ($TheString) = @_;
-    @L1=split("citep", $TheString);
-    @L2=();
-    for ($i1=1; $i1<=scalar(@L1); $i1++)
+    my @L1=split("citep", $TheString);
+    my @L2=();
+    for (my $i1=1; $i1<=scalar(@L1); $i1++)
     {
-	@CE=split("citet", $L1[$i1-1]);
-	for ($iCE=1; $iCE<=scalar(@CE); $iCE++)
+	my @CE=split("citet", $L1[$i1-1]);
+	for (my $iCE=1; $iCE<=scalar(@CE); $iCE++)
 	{
 	    $L2[scalar(@L2)]=$CE[$iCE-1];
 	}
     }
-    @L3=();
-    for ($i2=1; $i2<=scalar(@L2); $i2++)
+    my @L3=();
+    for (my $i2=1; $i2<=scalar(@L2); $i2++)
     {
-	@CE=split("cite", $L2[$i2-1]);
-	for ($iCE=1; $iCE<=scalar(@CE); $iCE++)
+	my @CE=split("cite", $L2[$i2-1]);
+	for (my $iCE=1; $iCE<=scalar(@CE); $iCE++)
 	{
 	    $L3[scalar(@L3)]=$CE[$iCE-1];
 	}
     }
-    for ($iL=2; $iL<=scalar(@L3); $iL++)
+    for (my $iL=2; $iL<=scalar(@L3); $iL++)
     {
-	$PrevPart=$L3[$iL-2];
-	@VCL=split("", $PrevPart);
+	my $PrevPart=$L3[$iL-2];
+	my @VCL=split("", $PrevPart);
 	if ($VCL[scalar(@VCL)-1] eq "\\")
 	{
-	    $ePart=$L3[$iL-1];
-	    @VCL3=split("{", $ePart);
-	    $RelPart=$VCL3[1];
-	    @SL=split("}", $RelPart);
-	    $TheCit=$SL[0];
-	    @ListCits=split(",", $TheCit);
-	    for ($iCit=1; $iCit<=scalar(@ListCits); $iCit++)
+	    my $ePart=$L3[$iL-1];
+	    my @VCL3=split("{", $ePart);
+	    my $RelPart=$VCL3[1];
+	    my @SL=split("}", $RelPart);
+	    my $TheCit=$SL[0];
+	    my @ListCits=split(",", $TheCit);
+	    for (my $iCit=1; $iCit<=scalar(@ListCits); $iCit++)
 	    {
-		$RealCit=$ListCits[$iCit-1];
-		@VE=split("", $RealCit);
-		for ($iChar=1; $iChar<=scalar(@VE); $iChar++)
+		my $RealCit=$ListCits[$iCit-1];
+		my @VE=split("", $RealCit);
+		for (my $iChar=1; $iChar<=scalar(@VE); $iChar++)
 		{
-		    $eChar=$VE[$iChar-1];
+		    my $eChar=$VE[$iChar-1];
 		    if ($eChar eq " ")
 		    {
 			print "The citation \\cite{".$TheCit."} is incorrect\n";
@@ -453,33 +457,34 @@ sub FuncReadLineAndInsert($)
     }
 }
 
-for ($iFile=1; $iFile<=$nbEntry; $iFile++)
+my $nbEntryFile=scalar(@ListFileNames);
+for (my $iFile=1; $iFile<=$nbEntryFile; $iFile++)
 {
-    $FileName=$ListFileNames[$iFile-1];
-    $test=$Openable[$iFile-1];
+    my $FileName=$ListFileNames[$iFile-1];
+    my $test=$Openable[$iFile-1];
     if ($test eq 1)
     {
 	open(INFILE, $FileName);
 #	print "open FileName=".$FileName."\n";
 	while(<INFILE>)
 	{
-	    $eLine=$_;
-	    $strSplPerc=PercentSplitting($eLine);
+	    my $eLine=$_;
+	    my $strSplPerc=PercentSplitting($eLine);
 	    FuncReadLineAndInsert($strSplPerc);
-	    @L2=split("bibitem", $strSplPerc);
+	    my @L2=split("bibitem", $strSplPerc);
 	    if (scalar(@L2) eq 2)
 	    {
-		@V1=split("\]", $L2[1]);
+		my @V1=split("\]", $L2[1]);
 		if (scalar(@V1) eq 2)
 		{
-		    @V2=split("{", $V1[1]);
-		    @V3=split("}", $V2[1]);
+		    my @V2=split("{", $V1[1]);
+		    my @V3=split("}", $V2[1]);
 		    FuncInsertRef($V3[0], "bibitem");
 		}
 		else
 		{
-		    @V2=split("{", $L2[1]);
-		    @V3=split("}", $V2[1]);
+		    my @V2=split("{", $L2[1]);
+		    my @V3=split("}", $V2[1]);
 		    FuncInsertRef($V3[0], "bibitem");
 		}
 	    }
@@ -488,13 +493,13 @@ for ($iFile=1; $iFile<=$nbEntry; $iFile++)
     }
 }
 
-@CorrectREF=();
-@CorrectNB=();
-for ($iCit=1; $iCit<=scalar(@LISTREF); $iCit++)
+my @CorrectREF=();
+my @CorrectNB=();
+for (my $iCit=1; $iCit<=scalar(@LISTREF); $iCit++)
 {
-    $TheCit=$LISTREF[$iCit-1];
-    $nbCIT=$NumberCIT[$iCit-1];
-    $nbDEF=$NumberDEF[$iCit-1];
+    my $TheCit=$LISTREF[$iCit-1];
+    my $nbCIT=$NumberCIT[$iCit-1];
+    my $nbDEF=$NumberDEF[$iCit-1];
     if ($nbDEF eq 1 && $nbCIT > 0)
     {
 	$CorrectREF[scalar(@CorrectREF)]=$TheCit;
@@ -502,14 +507,14 @@ for ($iCit=1; $iCit<=scalar(@LISTREF); $iCit++)
     }
 }
 
-for ($iCit=1; $iCit<=scalar(@CorrectREF)-1; $iCit++)
+for (my $iCit=1; $iCit<=scalar(@CorrectREF)-1; $iCit++)
 {
-    for ($jCit=$iCit+1; $jCit<=scalar(@CorrectREF); $jCit++)
+    for (my $jCit=$iCit+1; $jCit<=scalar(@CorrectREF); $jCit++)
     {
 	if ($CorrectNB[$iCit-1] < $CorrectNB[$jCit-1])
 	{
-	    $TheCit=$CorrectREF[$iCit-1];
-	    $nbCIT=$CorrectNB[$iCit-1];
+	    my $TheCit=$CorrectREF[$iCit-1];
+	    my $nbCIT=$CorrectNB[$iCit-1];
 	    #
 	    $CorrectREF[$iCit-1]=$CorrectREF[$jCit-1];
 	    $CorrectNB[$iCit-1]=$CorrectNB[$jCit-1];
@@ -521,7 +526,7 @@ for ($iCit=1; $iCit<=scalar(@CorrectREF)-1; $iCit++)
 }
 
 print "Statistics of correct references\n";
-for ($iCit=1; $iCit<=scalar(@CorrectREF)-1; $iCit++)
+for (my $iCit=1; $iCit<=scalar(@CorrectREF)-1; $iCit++)
 {
     print "Reference ".$CorrectREF[$iCit-1]." is cited ".$CorrectNB[$iCit-1]." times\n";
 }
@@ -535,11 +540,11 @@ if (scalar(@CorrectREF) eq scalar(@LISTREF))
 else
 {
     print "Incorrect references\n";
-    for ($iCit=1; $iCit<=scalar(@LISTREF); $iCit++)
+    for (my $iCit=1; $iCit<=scalar(@LISTREF); $iCit++)
     {
-	$TheCit=$LISTREF[$iCit-1];
-	$nbCIT=$NumberCIT[$iCit-1];
-	$nbDEF=$NumberDEF[$iCit-1];
+	my $TheCit=$LISTREF[$iCit-1];
+	my $nbCIT=$NumberCIT[$iCit-1];
+	my $nbDEF=$NumberDEF[$iCit-1];
 	if ($nbCIT eq 0)
 	{
 	    print "Reference ".$TheCit." is not cited\n";
@@ -556,11 +561,11 @@ else
 }
 if (scalar(@CorrectREF) eq scalar(@LISTREF))
 {
-    for ($iCit=1; $iCit<=scalar(@LISTREF); $iCit++)
+    for (my $iCit=1; $iCit<=scalar(@LISTREF); $iCit++)
     {
-	$TheCit=$LISTREF[$iCit-1];
-	$pos1=$PositionCITE[$iCit-1];
-	$pos2=$PositionBIBITEM[$iCit-1];
+	my $TheCit=$LISTREF[$iCit-1];
+	my $pos1=$PositionCITE[$iCit-1];
+	my $pos2=$PositionBIBITEM[$iCit-1];
 	if ($pos1 ne $pos2)
 	{
 	    print "Citation ".$TheCit." CiteRank=".$pos1." BibitemRank=".$pos2."\n";

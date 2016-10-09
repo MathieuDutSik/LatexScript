@@ -1,5 +1,8 @@
 #!/usr/bin/perl -w
-$uu=scalar(@ARGV);
+use strict;
+use warnings;
+
+my $uu=scalar(@ARGV);
 if ($uu eq 0 || $uu eq 1)
 {
     print "LATEX_SimpleCopyForEdit TARGETDIR [File1] [File2] ....\n";
@@ -23,14 +26,14 @@ if ($uu eq 0 || $uu eq 1)
 sub ExtractFromEpsfigLine($)
 {
     my ($TheLine)=@_;
-    @V2=split("epsfig{", $TheLine);
-    @V3=split("}", $V2[1]);
-    @V4=split(",", $V3[0]);
-    for ($iEnt=1; $iEnt<=scalar(@V4); $iEnt++)
+    my @V2=split("epsfig{", $TheLine);
+    my @V3=split("}", $V2[1]);
+    my @V4=split(",", $V3[0]);
+    for (my $iEnt=1; $iEnt<=scalar(@V4); $iEnt++)
     {
 	$_=$V4[$iEnt-1];
 	s/ //;
-	@V5=split("=", $_);
+	my @V5=split("=", $_);
 	if ($V5[0] eq "file" || $V5[0] eq "figure")
 	{
 	    return $V5[1];
@@ -42,7 +45,7 @@ sub ExtractFromEpsfigLine($)
 sub ExtractFromInputLine($)
 {
     my ($TheLine)=@_;
-    @V2=split("input", $TheLine);
+    my @V2=split("input", $TheLine);
     if ($V2[0] ne "\\")
     {
 	return "Z6PO_WVJJFHHNSD";
@@ -50,7 +53,7 @@ sub ExtractFromInputLine($)
 #	print "You break the rule on the inputs\n";
 #	die;
     }
-    @V3=split("}", $V2[1]);
+    my @V3=split("}", $V2[1]);
     $_=$V3[0];
     s/\n//;
     s/ //;
@@ -61,16 +64,16 @@ sub ExtractFromInputLine($)
 sub GetTheSuffix($)
 {
     my ($TheLine)=@_;
-    @V2=split("", $TheLine);
-    @V2=split("", $TheLine);
-    @ListIndices=();
-    for ($iChar=1; $iChar<=scalar(@V2); $iChar++)
+    my @V2=split("", $TheLine);
+    my @ListIndices=();
+    for (my $iChar=1; $iChar<=scalar(@V2); $iChar++)
     {
 	if ($V2[$iChar-1] eq ".")
 	{
 	    $ListIndices[scalar(@ListIndices)]=$iChar;
 	}
     }
+    my $LimitChar;
     if (scalar(@ListIndices) eq 0)
     {
 	$LimitChar=scalar(@V2)+1;
@@ -79,8 +82,8 @@ sub GetTheSuffix($)
     {
 	$LimitChar=$ListIndices[scalar(@ListIndices)-1]+1;
     }
-    $suffix="";
-    for ($iChar=$LimitChar; $iChar<=scalar(@V2); $iChar++)
+    my $suffix="";
+    for (my $iChar=$LimitChar; $iChar<=scalar(@V2); $iChar++)
     {
 	$suffix=$suffix.$V2[$iChar-1];
     }
@@ -92,15 +95,16 @@ sub GetTheSuffix($)
 sub GetThePrefix($)
 {
     my ($TheLine)=@_;
-    @V2=split("", $TheLine);
-    @ListIndices=();
-    for ($iChar=1; $iChar<=scalar(@V2); $iChar++)
+    my @V2=split("", $TheLine);
+    my @ListIndices=();
+    for (my $iChar=1; $iChar<=scalar(@V2); $iChar++)
     {
 	if ($V2[$iChar-1] eq ".")
 	{
 	    $ListIndices[scalar(@ListIndices)]=$iChar;
 	}
     }
+    my $LimitChar;
     if (scalar(@ListIndices) eq 0)
     {
 	$LimitChar=scalar(@V2)+1;
@@ -110,8 +114,8 @@ sub GetThePrefix($)
 	$LimitChar=$ListIndices[scalar(@ListIndices)-1]-1;
     }
 #    print "LimitChar=".$LimitChar."\n";
-    $prefix="";
-    for ($iChar=1; $iChar<=$LimitChar; $iChar++)
+    my $prefix="";
+    for (my $iChar=1; $iChar<=$LimitChar; $iChar++)
     {
 	$prefix=$prefix.$V2[$iChar-1];
     }
@@ -124,7 +128,7 @@ sub GetThePrefix($)
 sub ShallFileBeOpenedAtAll($)
 {
     my ($TheFile)=@_;
-    $suffix=GetTheSuffix($TheFile);
+    my $suffix=GetTheSuffix($TheFile);
     if ($suffix eq "")
     {
 	return 0;
@@ -147,7 +151,9 @@ sub ShallFileBeOpenedAtAll($)
 sub GetCorrespondingFigName($)
 {
     my ($TheFile)=@_;
-    $IsOKforCorresp=0;
+    my $suffix=GetTheSuffix($TheFile);
+    my $IsOKforCorresp=0;
+    my $lenCorresp;
     if ($suffix eq "eps")
     {
 	$IsOKforCorresp=1;
@@ -165,9 +171,9 @@ sub GetCorrespondingFigName($)
     }
     if ($IsOKforCorresp eq 1)
     {
-	@BSLKUT=split("", $TheFile);
-	$retStringCorresp="";
-	for ($iCharCorresp=1; $iCharCorresp<=scalar(@BSLKUT)-$lenCorresp; $iCharCorresp++)
+	my @BSLKUT=split("", $TheFile);
+	my $retStringCorresp="";
+	for (my $iCharCorresp=1; $iCharCorresp<=scalar(@BSLKUT)-$lenCorresp; $iCharCorresp++)
 	{
 	    $retStringCorresp=$retStringCorresp.$BSLKUT[$iCharCorresp-1];
 	}
@@ -184,66 +190,66 @@ sub GetCorrespondingFigName($)
 sub ExtractFileNameFromLine($)
 {
     my ($line)=@_;
-    @V=split("", $line);
+    my @V=split("", $line);
     if ($V[0] eq "%")
     {
 	return "Z6PO_WVJJFHHNSD";
     }
-    @V=split("includegraphics", $line);
-    if (scalar(@V) > 2)
+    my @Vb=split("includegraphics", $line);
+    if (scalar(@Vb) > 2)
     {
 	print "You broke the assumption of only one file per line\n";
 	die;
     }
-    if (scalar(@V) > 1)
+    if (scalar(@Vb) > 1)
     {
-	@WRL=split("{", $V[1]);
-	$h=$WRL[1];
-	@V2=split("}", $h);
-	$file=$V2[0];
+	my @WRL=split("{", $Vb[1]);
+	my $h=$WRL[1];
+	my @V2=split("}", $h);
+	my $file=$V2[0];
 	return $file;
     }
-    @V=split("epsfig", $line);
-    if (scalar(@V) >2)
+    my @Vc=split("epsfig", $line);
+    if (scalar(@Vc) >2)
     {
 	print "You broke the assumption of at most one epfig per line\n";
 	die;
     }
-    if (scalar(@V) > 1)
+    if (scalar(@Vc) > 1)
     {
-	@V=split("documentclass", $line);
-	if (scalar(@V) > 1)
+	my @V2a=split("documentclass", $line);
+	if (scalar(@V2a) > 1)
 	{
 	    return "Z6PO_WVJJFHHNSD";
 	}
-	@V=split("usepackage", $line);
-	if (scalar(@V) eq 1)
+	my @V2b=split("usepackage", $line);
+	if (scalar(@V2b) eq 1)
 	{
-	    $file=ExtractFromEpsfigLine($line);
+	    my $file=ExtractFromEpsfigLine($line);
 	    return $file;
 	}
     }
-    @V=split("epsffile{", $line);
-    if (scalar(@V) >2)
+    my @Vd=split("epsffile{", $line);
+    if (scalar(@Vd) >2)
     {
 	print "You broke the assumption of at most one epsffile per line\n";
 	die;
     }
-    if (scalar(@V) > 1)
+    if (scalar(@Vd) > 1)
     {
-	@V2=split("}", $V[1]);
-	$file=$V2[0];
+	my @V2=split("}", $Vd[1]);
+	my $file=$V2[0];
 	return $file;
     }
-    @V=split("\\input", $line);
-    if (scalar(@V) >2)
+    my @Ve=split("\\input", $line);
+    if (scalar(@Ve) >2)
     {
 	print "You broke the assumption of at  most one input per line\n";
 	die;
     }
-    if (scalar(@V) > 1)
+    if (scalar(@Ve) > 1)
     {
-	$file=ExtractFromInputLine($line);
+	my $file=ExtractFromInputLine($line);
 	return $file;
     }
     return "Z6PO_WVJJFHHNSD";
@@ -257,12 +263,12 @@ sub ListCall($)
     my ($FileName)=@_;
     my @MatchedSymbol=();
     open(INFILE, $FileName) or die "impossible to open ".$FileName;
-    @B=<INFILE>;
+    my @B=<INFILE>;
     close(INFILE);
-    for ($iLine=1; $iLine<=scalar(@B); $iLine++)
+    for (my $iLine=1; $iLine<=scalar(@B); $iLine++)
     {
-	$line=$B[$iLine-1];
-	$file=ExtractFileNameFromLine($line);
+	my $line=$B[$iLine-1];
+	my $file=ExtractFileNameFromLine($line);
 	if ($file ne "Z6PO_WVJJFHHNSD")
 	{
 	    $MatchedSymbol[scalar(@MatchedSymbol)]=$file;
@@ -272,15 +278,15 @@ sub ListCall($)
 }
 
 
-$TARGET=$ARGV[0];
+my $TARGET=$ARGV[0];
 
-@ListFileNames=();
-@ListFileStatus=();
-@Openable=();
+my @ListFileNames=();
+my @ListFileStatus=();
+my @Openable=();
 sub InsertFileInDatabase($)
 {
     my ($FileName)=@_;
-    for ($kFile=1; $kFile<=scalar(@ListFileNames); $kFile++)
+    for (my $kFile=1; $kFile<=scalar(@ListFileNames); $kFile++)
     {
 	if ($ListFileNames[$kFile-1] eq $FileName)
 	{
@@ -293,8 +299,8 @@ sub InsertFileInDatabase($)
     $ListFileStatus[scalar(@ListFileStatus)]=0;
     $Openable[scalar(@Openable)]=ShallFileBeOpenedAtAll($FileName);
     #
-    $ThePrefixLocal=GetThePrefix($FileName);
-    $TheBBLfile=$ThePrefixLocal.".bbl";
+    my $ThePrefixLocal=GetThePrefix($FileName);
+    my $TheBBLfile=$ThePrefixLocal.".bbl";
     if (-e $TheBBLfile)
     {
 	$ListFileNames[scalar(@ListFileNames)]=$TheBBLfile;
@@ -302,7 +308,7 @@ sub InsertFileInDatabase($)
 	$Openable[scalar(@Openable)]=0;
     }
     #
-    $correspFile=GetCorrespondingFigName($FileName);
+    my $correspFile=GetCorrespondingFigName($FileName);
     if ($correspFile ne "BULGROZ vie toujours!" && -e $correspFile)
     {
 	$ListFileNames[scalar(@ListFileNames)]=$correspFile;
@@ -312,7 +318,9 @@ sub InsertFileInDatabase($)
 }
 
 
-$FileLS="/tmp/ListFile";
+my $FileLS="/tmp/ListFile";
+my $order;
+
 $order="ls *.cls *.clo *.sty > ".$FileLS;
 print $order."\n";
 if (system($order) != 0) {
@@ -324,26 +332,26 @@ open(INF, $FileLS) or die "impossible to open ".$FileLS;
 while(<INF>)
 {
     chomp($_);
-    $eFileCLS=$_;
+    my $eFileCLS=$_;
     InsertFileInDatabase($eFileCLS);
 }
 close(INF);
+
 $order="rm -f ".$FileLS;
 print $order."\n";
 if (system($order) != 0) {
     die "Error while doing operation\n";
 }
 
-for ($i=2; $i<=scalar(@ARGV); $i++)
+for (my $i=2; $i<=scalar(@ARGV); $i++)
 {
-    $NewFile=$ARGV[$i-1];
+    my $NewFile=$ARGV[$i-1];
     InsertFileInDatabase($NewFile);
 }
-$ListMakefileName[0]="makefile";
-$ListMakefileName[1]="Makefile";
-for ($iMake=1; $iMake<=scalar(@ListMakefileName); $iMake++)
+my @ListMakefileName=("makefile", "Makefile");
+for (my $iMake=1; $iMake<=scalar(@ListMakefileName); $iMake++)
 {
-    $TheMakefile=$ListMakefileName[$iMake-1];
+    my $TheMakefile=$ListMakefileName[$iMake-1];
     if (-e $TheMakefile)
     {
 	InsertFileInDatabase($TheMakefile);
@@ -355,21 +363,21 @@ for ($iMake=1; $iMake<=scalar(@ListMakefileName); $iMake++)
 
 while(1)
 {
-    $nbEntry=scalar(@ListFileNames);
-    $IsFinished=1;
-    for ($iFile=1; $iFile<=$nbEntry; $iFile++)
+    my $nbEntry=scalar(@ListFileNames);
+    my $IsFinished=1;
+    for (my $iFile=1; $iFile<=$nbEntry; $iFile++)
     {
-	$FileName=$ListFileNames[$iFile-1];
-	$test=$Openable[$iFile-1];
+	my $FileName=$ListFileNames[$iFile-1];
+	my $test=$Openable[$iFile-1];
 	if ($ListFileStatus[$iFile-1] eq 0 && $test eq 1)
 	{
 	    $IsFinished=0;
 	    print "Considering insertion from ".$FileName."\n";
 	    $ListFileStatus[$iFile-1]=1;
-	    @VSYMB=ListCall($FileName);
-	    for ($iSymb=1; $iSymb<=scalar(@VSYMB); $iSymb++)
+	    my @VSYMB=ListCall($FileName);
+	    for (my $iSymb=1; $iSymb<=scalar(@VSYMB); $iSymb++)
 	    {
-		$NewFile=$VSYMB[$iSymb-1];
+		my $NewFile=$VSYMB[$iSymb-1];
 		InsertFileInDatabase($NewFile);
 	    }
 	}
@@ -383,30 +391,30 @@ while(1)
 sub LineSubstitution($$$)
 {
     my ($line, $patt1, $patt2)=@_;
-    @V=split("", $line);
-    @PAT1=split("", $patt1);
-    $nb=scalar(@V);
-    $nb1=scalar(@PAT1);
-    for ($idx=1; $idx<=$nb+1-$nb1; $idx++)
+    my @V=split("", $line);
+    my @PAT1=split("", $patt1);
+    my $nb=scalar(@V);
+    my $nb1=scalar(@PAT1);
+    for (my $idx=1; $idx<=$nb+1-$nb1; $idx++)
     {
-	$ch1="";
-	for ($i=1; $i<=$idx-1; $i++)
+	my $ch1="";
+	for (my $i=1; $i<=$idx-1; $i++)
 	{
 	    $ch1=$ch1.$V[$i-1];
 	}
-	$ch2="";
-	for ($i=$idx; $i<=$idx+$nb1-1; $i++)
+	my $ch2="";
+	for (my $i=$idx; $i<=$idx+$nb1-1; $i++)
 	{
 	    $ch2=$ch2.$V[$i-1];
 	}
-	$ch3="";
-	for ($i=$idx+$nb1; $i<=$nb; $i++)
+	my $ch3="";
+	for (my $i=$idx+$nb1; $i<=$nb; $i++)
 	{
 	    $ch3=$ch3.$V[$i-1];
 	}
 	if ($ch2 eq $patt1)
 	{
-	    $ret=$ch1.$patt2.$ch3;
+	    my $ret=$ch1.$patt2.$ch3;
 	    return $ret;
 	}
     }
@@ -418,11 +426,11 @@ sub LineSubstitution($$$)
 sub MyDirectCopy($$)
 {
     my ($FileName1, $FileName2)=@_;
-    @U=split("/", $FileName2);
-    for ($iLevel=1; $iLevel<=scalar(@U)-1; $iLevel++)
+    my @U=split("/", $FileName2);
+    for (my $iLevel=1; $iLevel<=scalar(@U)-1; $iLevel++)
     {
-	$TheDir=$U[0];
-	for ($jLevel=2; $jLevel<=$iLevel; $jLevel++)
+	my $TheDir=$U[0];
+	for (my $jLevel=2; $jLevel<=$iLevel; $jLevel++)
 	{
 	    $TheDir=$TheDir."/".$U[$jLevel-1];
 	}
@@ -440,10 +448,10 @@ sub MyDirectCopy($$)
 
 
 
-for ($iFile=1; $iFile<=scalar(@ListFileNames); $iFile++)
+for (my $iFile=1; $iFile<=scalar(@ListFileNames); $iFile++)
 {
-    $FileName1=$ListFileNames[$iFile-1];
-    $FileName2=$TARGET."/".$ListFileNames[$iFile-1];
+    my $FileName1=$ListFileNames[$iFile-1];
+    my $FileName2=$TARGET."/".$ListFileNames[$iFile-1];
     print "Treating ".$FileName1."\n";
     print "   creating ".$FileName2."\n";
     MyDirectCopy($FileName1, $FileName2);
