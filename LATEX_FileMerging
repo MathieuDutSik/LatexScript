@@ -33,24 +33,24 @@ sub MySplit($$)
     my $SPL_str_siz=scalar(@SPLblock);
     my $SPL_len=scalar(@SPL_line);
     my @SPL_status=();
-    for (my $SPL_iChar=1; $SPL_iChar<=$SPL_len; $SPL_iChar++)
+    for (my $SPL_iChar=0; $SPL_iChar<$SPL_len; $SPL_iChar++)
     {
-	$SPL_status[$SPL_iChar-1]=1;
+	$SPL_status[$SPL_iChar]=1;
     }
     my @SPL_ret=();
     my $SPL_strB="";
     my $SPL_match;
-    for (my $SPL_iChar=1; $SPL_iChar<=$SPL_len; $SPL_iChar++)
+    for (my $SPL_iChar=0; $SPL_iChar<$SPL_len; $SPL_iChar++)
     {
-	if ($SPL_status[$SPL_iChar-1] eq 1)
+	if ($SPL_status[$SPL_iChar] eq 1)
 	{
-	    if ($SPL_iChar + $SPL_str_siz - 2 <= $SPL_len-1)
+	    if ($SPL_iChar + $SPL_str_siz <= $SPL_len)
 	    {
 		$SPL_match=1;
-		for (my $SPL_jChar=1; $SPL_jChar<=$SPL_str_siz; $SPL_jChar++)
+		for (my $SPL_jChar=0; $SPL_jChar<$SPL_str_siz; $SPL_jChar++)
 		{
-		    my $SPL_eChar=$SPLblock[$SPL_jChar-1];
-		    my $SPL_pos=$SPL_iChar+$SPL_jChar-2;
+		    my $SPL_eChar=$SPLblock[$SPL_jChar];
+		    my $SPL_pos=$SPL_iChar+$SPL_jChar;
 		    my $SPL_fChar=$SPL_line[$SPL_pos];
 #		    print "SPL_efChar=".$SPL_eChar." ".$SPL_fChar."\n";
 #		    print "SPL_len=".$SPL_len." SPL_pos=".$SPL_pos."\n";
@@ -68,7 +68,7 @@ sub MySplit($$)
 	    if ($SPL_match eq 0)
 	    {
 #		print "appending\n";
-		$SPL_strB=$SPL_strB.$SPL_line[$SPL_iChar-1];
+		$SPL_strB=$SPL_strB.$SPL_line[$SPL_iChar];
 #		print "SPL_str=".$SPL_str."\n";
 	    }
 	    else
@@ -78,9 +78,9 @@ sub MySplit($$)
 		    $SPL_ret[scalar(@SPL_ret)]=$SPL_strB;
 		    $SPL_strB="";
 		}
-		for (my $SPL_jChar=1; $SPL_jChar<=$SPL_str_siz; $SPL_jChar++)
+		for (my $SPL_jChar=0; $SPL_jChar<$SPL_str_siz; $SPL_jChar++)
 		{
-		    $SPL_status[$SPL_iChar+$SPL_jChar-2]=0;
+		    $SPL_status[$SPL_iChar+$SPL_jChar]=0;
 		}
 	    }
 	}
@@ -98,8 +98,11 @@ sub MySplit($$)
 sub ExtractFromInputLine($)
 {
     my ($TheLine)=@_;
+    print "TheLine=".$TheLine."\n";
     my @V2=split("input", $TheLine);
-    if ($V2[0] ne "\\")
+    my @V2_spl=split("", $V2[0]);
+    my $V2_last=$V2_spl[scalar(@V2_spl)-1];
+    if ($V2_last ne "\\")
     {
 	return "Z6PO_WVJJFHHNSD";
 #	print "LINE=".$TheLine;
@@ -108,6 +111,7 @@ sub ExtractFromInputLine($)
     }
     my @V3=split("}", $V2[1]);
     $_=$V3[0];
+    s/\n//;
     s/ //;
     s/{//;
     my $FileNameInput=$_;
@@ -150,9 +154,9 @@ sub GetThePrefix($)
     my ($TheLine)=@_;
     my @V2=split("", $TheLine);
     my @ListIndices=();
-    for (my $iChar=1; $iChar<=scalar(@V2); $iChar++)
+    for (my $iChar=0; $iChar<scalar(@V2); $iChar++)
     {
-	if ($V2[$iChar-1] eq ".")
+	if ($V2[$iChar] eq ".")
 	{
 	    $ListIndices[scalar(@ListIndices)]=$iChar;
 	}
@@ -164,12 +168,12 @@ sub GetThePrefix($)
     }
     else
     {
-	$LimitChar=$ListIndices[scalar(@ListIndices)-1]-1;
+	$LimitChar=$ListIndices[scalar(@ListIndices)-1];
     }
     my $prefix="";
-    for (my $iChar=1; $iChar<=$LimitChar; $iChar++)
+    for (my $iChar=0; $iChar<$LimitChar; $iChar++)
     {
-	$prefix=$prefix.$V2[$iChar-1];
+	$prefix=$prefix.$V2[$iChar];
     }
     return $prefix;
 }
@@ -202,8 +206,9 @@ sub ShallFileBeOpenedAtAll($)
 
 sub ShallFileBeMergedAtAll($)
 {
-    my ($TheLine)=@_;
-    my $suffix=GetTheSuffix($TheLine);
+    my ($FileName)=@_;
+    my $suffix=GetTheSuffix($FileName);
+    print "FileName=".$FileName." suffix=".$suffix."\n";
     if ($suffix eq "")
     {
 	return 0;
@@ -212,7 +217,7 @@ sub ShallFileBeMergedAtAll($)
     {
 	return 1;
     }
-    if ($TheLine eq "elsart.sty")
+    if ($FileName eq "elsart.sty")
     {
 	return 0;
     }
@@ -267,10 +272,9 @@ sub ListCall($)
     my @B=<INFILE>;
     close(INFILE);
     print "ListCall FileName=".$FileName."\n";
-    for (my $iLine=1; $iLine<=scalar(@B); $iLine++)
+    foreach my $line(@B)
     {
-	my $line=$B[$iLine-1];
-	print "iLine=".$iLine." line=".$line."\n";
+	print " line=".$line."\n";
 	my $file=ExtractFileNameFromLine($line);
 	if ($file ne "Z6PO_WVJJFHHNSD")
 	{
@@ -288,9 +292,9 @@ my @ListDependency=();
 sub ReturnIndexInDatabase($)
 {
     my ($FileName)=@_;
-    for (my $kFile=1; $kFile<=scalar(@ListFileNames); $kFile++)
+    for (my $kFile=0; $kFile<scalar(@ListFileNames); $kFile++)
     {
-	if ($ListFileNames[$kFile-1] eq $FileName)
+	if ($ListFileNames[$kFile] eq $FileName)
 	{
 	    return $kFile;
 	}
@@ -301,15 +305,14 @@ sub ReturnIndexInDatabase($)
     $ListFileNames[$insertVal]=$FileName;
     $ListFileStatus[$insertVal]=0;
     $Openable[$insertVal]=ShallFileBeOpenedAtAll($FileName);
-    my $ret=$insertVal+1;
-    return $ret;
+    return $insertVal;
 }
 
 
 
-for (my $i=1; $i<=scalar(@ARGV); $i++)
+for (my $i=0; $i<scalar(@ARGV); $i++)
 {
-    my $NewFile=$ARGV[$i-1];
+    my $NewFile=$ARGV[$i];
     my $retVal=ReturnIndexInDatabase($NewFile);
     print "i=".$i." retVal=".$retVal." NewFile=".$NewFile."\n";
 }
@@ -319,30 +322,31 @@ while(1)
 {
     my $nbEntry=scalar(@ListFileNames);
     my $IsFinished=1;
-    for (my $iFile=1; $iFile<=$nbEntry; $iFile++)
+    for (my $iFile=0; $iFile<$nbEntry; $iFile++)
     {
-	my $FileName=$ListFileNames[$iFile-1];
-	my $test=$Openable[$iFile-1];
-	if ($ListFileStatus[$iFile-1] eq 0)
+	my $FileName=$ListFileNames[$iFile];
+	my $test=$Openable[$iFile];
+	if ($ListFileStatus[$iFile] eq 0)
 	{
 	    my $chdep="";
-	    $ListFileStatus[$iFile-1]=1;
+	    $ListFileStatus[$iFile]=1;
 	    $IsFinished=0;
 	    if ($test eq 1)
 	    {
 		my @VSYMB=ListCall($FileName);
-		for (my $iSymb=1; $iSymb<=scalar(@VSYMB); $iSymb++)
+		foreach my $NewFile(@VSYMB)
 		{
-		    my $NewFile=$VSYMB[$iSymb-1];
 		    my $retVal=ReturnIndexInDatabase($NewFile);
 		    my $test=ShallFileBeMergedAtAll($NewFile);
+		    print "NewFile=".$NewFile." mergestatus=".$test."\n";
 		    if ($test eq 1)
 		    {
 			$chdep=$chdep." ".$retVal;
 		    }
 		}
 	    }
-	    $ListDependency[$iFile-1]=$chdep;
+	    print "chdep=".$chdep."\n";
+	    $ListDependency[$iFile]=$chdep;
 	}
     }
     if ($IsFinished eq 1)
@@ -353,23 +357,23 @@ while(1)
 
 print "List of relevant files:\n";
 my @KeptFile=();
-for (my $iFile=1; $iFile<=scalar(@ListFileNames); $iFile++)
+for (my $iFile=0; $iFile<scalar(@ListFileNames); $iFile++)
 {
-    print "NB=".$iFile."   NAME=".$ListFileNames[$iFile-1]."\n";
-    print " Depending from Nrs:".$ListDependency[$iFile-1]."\n";
-    $KeptFile[$iFile-1]=1;
+    print "iFile=".$iFile."  FileName=".$ListFileNames[$iFile]."\n";
+    print " Depending from Nrs:".$ListDependency[$iFile]."\n";
+    $KeptFile[$iFile]=1;
 }
 
 sub ListMatched($)
 {
     my ($rFile) = @_;
     my @RLS=();
-    for (my $kFile=1; $kFile<=scalar(@ListFileNames); $kFile++)
+    for (my $kFile=0; $kFile<scalar(@ListFileNames); $kFile++)
     {
-	my @L=split(" ", $ListDependency[$kFile-1]);
-	for (my $iL=1; $iL<=scalar(@L); $iL++)
+	my @L=split(" ", $ListDependency[$kFile]);
+	foreach my $eL(@L)
 	{
-	    if ($L[$iL-1] eq $rFile)
+	    if ($eL eq $rFile)
 	    {
 		@RLS[scalar(@RLS)]=$kFile;
 	    }
@@ -381,9 +385,9 @@ sub ListMatched($)
 
 sub FindTreeLeaf()
 {
-    for (my $jFile=1; $jFile<=scalar(@ListFileNames); $jFile++)
+    for (my $jFile=0; $jFile<scalar(@ListFileNames); $jFile++)
     {
-	if ($KeptFile[$jFile-1] eq 1 && $ListDependency[$jFile-1] eq "")
+	if ($KeptFile[$jFile] eq 1 && $ListDependency[$jFile] eq "")
 	{
 	    my @RPCK=ListMatched($jFile);
 	    if (scalar(@RPCK)>0)
@@ -398,34 +402,11 @@ sub FindTreeLeaf()
 
 sub IsMatchingInput($$)
 {
-    my ($line, $patt1) =@_;
-    my @V=split("", $line);
-    my @PAT1=split("", $patt1);
-    my $nb=scalar(@V);
-    my $nb1=scalar(@PAT1);
-    my $ch1="";
-    for (my $idx=1; $idx<=6; $idx++)
+    my ($lineIN, $fileIN) =@_;
+    my $fileF=ExtractFromInputLine($lineIN);
+    if ($fileF eq $fileIN)
     {
-	if ($idx <= scalar(@V))
-	{
-	    $ch1=$ch1.$V[$idx-1];
-	}
-    }
-    if ($ch1 ne "\\input")
-    {
-	return 0;
-    }
-    for (my $idx=1; $idx<=$nb+1-$nb1; $idx++)
-    {
-	my $ch2="";
-	for (my $i=$idx; $i<=$idx+$nb1-1; $i++)
-	{
-	    $ch2=$ch2.$V[$i-1];
-	}
-	if ($ch2 eq $patt1)
-	{
-	    return 1;
-	}
+	return 1;
     }
     return 0;
 }
@@ -441,11 +422,15 @@ sub RealizeFileInsertion($$)
     my $FilePrev="/tmp/PRCKL_OR";
     #
     open(OUTFILE, "> ".$FilePrev);
-    for (my $iLine=1; $iLine<=scalar(@B); $iLine++)
+    for (my $iLine=0; $iLine<scalar(@B); $iLine++)
     {
 #	print "iLine=".$iLine."\n";
-	my $line=$B[$iLine-1];
+	my $line=$B[$iLine];
 	my $test=IsMatchingInput($line, $FileInserted);
+	print "iLine=".$iLine."\n";
+	print "  line=".$line."\n";
+	print "  FileInserted=".$FileInserted."\n";
+	print "  test=".$test."\n";
 	if ($test eq 0)
 	{
 	    print OUTFILE $line;
@@ -455,9 +440,9 @@ sub RealizeFileInsertion($$)
 	    open(INFILE2, $FileInserted);
 	    my @B2L=<INFILE2>;
 	    close(INFILE2);
-	    for (my $jLine=1; $jLine<=scalar(@B2L); $jLine++)
+	    for (my $jLine=0; $jLine<scalar(@B2L); $jLine++)
 	    {
-		print OUTFILE $B2L[$jLine-1];
+		print OUTFILE $B2L[$jLine];
 	    }
 	}
     }
@@ -480,35 +465,34 @@ while(1)
     {
 	last;
     }
-    print "Inserting file Nb=".$iFile. "  name=".$ListFileNames[$iFile-1]."\n";
+    print "Inserting file Nb=".$iFile. "  name=".$ListFileNames[$iFile]."\n";
     my @LMATC=ListMatched($iFile);
-    for (my $iMat=1; $iMat<=scalar(@LMATC); $iMat++)
+    foreach my $jFile(@LMATC)
     {
-	my $jFile=$LMATC[$iMat-1];
-	print "appearing in Nb=".$jFile."  name=".$ListFileNames[$jFile-1]."\n";
-	RealizeFileInsertion($ListFileNames[$jFile-1], $ListFileNames[$iFile-1]);
-	my $Depend=$ListDependency[$jFile-1];
+	print "appearing in Nb=".$jFile."  name=".$ListFileNames[$jFile]."\n";
+	RealizeFileInsertion($ListFileNames[$jFile], $ListFileNames[$iFile]);
+	my $Depend=$ListDependency[$jFile];
 	my @L=split(" ", $Depend);
 	my $NewDepend="";
-	for (my $iL=1; $iL<=scalar(@L); $iL++)
+	foreach my $eL(@L)
 	{
-	    if ($L[$iL-1] ne $iFile)
+	    if ($eL ne $iFile)
 	    {
-		$NewDepend=$NewDepend." ".$L[$iL-1];
+		$NewDepend=$NewDepend." ".$eL;
 	    }
 	}
 	print "Depend=".$Depend."  NewDepend=".$NewDepend."\n";
-	$ListDependency[$jFile-1]=$NewDepend;
+	$ListDependency[$jFile]=$NewDepend;
     }
-    $KeptFile[$iFile-1]=0;
+    $KeptFile[$iFile]=0;
 }
 
 print "Kill inserted files\n";
-for (my $iFile=1; $iFile<=scalar(@ListFileNames); $iFile++)
+for (my $iFile=0; $iFile<scalar(@ListFileNames); $iFile++)
 {
-    if ($KeptFile[$iFile-1] eq 0)
+    if ($KeptFile[$iFile] eq 0)
     {
-	my $order="rm ".$ListFileNames[$iFile-1];
+	my $order="rm ".$ListFileNames[$iFile];
 	print $order."\n";
 	if (system($order) != 0) {
 	    die "Error while doing rm operation\n";
