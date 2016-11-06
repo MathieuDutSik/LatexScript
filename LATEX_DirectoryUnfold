@@ -45,9 +45,11 @@ my %MatchRealNameRev;
 sub ExtractFromInputLine($)
 {
     my ($TheLine)=@_;
+    print "TheLine=".$TheLine."\n";
     my @V2=split("input", $TheLine);
     my @LfileF=();
-    if ($V2[0] ne "\\")
+    my @V2_spl=split("", $V2[0]);
+    if ($V2_spl[scalar(@V2_spl)-1] ne "\\")
     {
 	return @LfileF;
     }
