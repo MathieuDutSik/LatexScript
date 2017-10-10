@@ -15,7 +15,7 @@ sub ReorderedEpsfigCall($)
     my @V3=split("}", $V2[1]);
     my $rstl=$V3[0];
     my @V4=split(",", $rstl);
-    my @OrdOfficial=("file", "figure", "width", "height", "angle");
+    my @OrdOfficial=("file", "figure", "width", "bb", "height", "angle");
     my @LCan=();
     for (my $iEnt=1; $iEnt<=scalar(@V4); $iEnt++)
     {
