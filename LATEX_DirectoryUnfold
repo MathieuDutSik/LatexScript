@@ -11,7 +11,7 @@ if ($uu eq 0 || $uu eq 1)
     print "\n";
     print "assumptions:\n";
     print "--there is only one image file per line at most\n";
-    print "--Line with input begin by \input and nothing before\n";
+    print "--Line with input begin by \\input and nothing before\n";
     print "--full filename appear in the text, there is no implicit .eps, .tex and so on\n";
     print "\n";
     print "The result is that the directory structure is flatened\n";
@@ -19,12 +19,26 @@ if ($uu eq 0 || $uu eq 1)
     die;
 }
 
+sub GetLastNm1Characters($)
+{
+    my ($strIN)=@_;
+    my @V2sp=split("", $strIN);
+    my $strOUT="";
+    for (my $iS=1; $iS<scalar(@V2sp); $iS++)
+    {
+	$strOUT=$strOUT.$V2sp[$iS];
+    }
+    return $strOUT;
+}
+
+
 
 sub ExtractFromEpsfigLine($)
 {
     my ($TheLine)=@_;
-    my @V2=split("epsfig{", $TheLine);
-    my @V3=split("}", $V2[1]);
+    my @V2=split("epsfig", $TheLine);
+    my $strRED=GetLastNm1Characters($V2[1]);
+    my @V3=split("}", $strRED);
     my @V4=split(",", $V3[0]);
     for (my $iEnt=1; $iEnt<=scalar(@V4); $iEnt++)
     {
@@ -227,7 +241,7 @@ sub ExtractFileNameFromLine($)
 	    return @LFileFound;
 	}
     }
-    my @VC=split("epsffile{", $line);
+    my @VC=split("epsffile", $line);
     if (scalar(@VC) >2)
     {
 	print "You broke the assumption of at most one epsffile per line\n";
@@ -250,18 +264,20 @@ sub ExtractFileNameFromLine($)
     {
 	return ExtractFromInputLine($line);
     }
-    my @VW2=split("bibliographystyle{", $line);
+    my @VW2=split("bibliographystyle", $line);
     if (scalar(@VW2) > 1)
     {
-	my @V2=split("}", $VW2[1]);
+	my $strRED=GetLastNm1Characters($VW2[1]);
+	my @V2=split("}", $strRED);
 	my $file=$V2[0].".bst";
 	$LFileFound[0]=$file;
 	return @LFileFound;
     }
-    my @VW3=split("bibliography{", $line);
+    my @VW3=split("bibliography", $line);
     if (scalar(@VW3) > 1)
     {
-	my @V2=split("}", $VW3[1]);
+	my $strRED=GetLastNm1Characters($VW3[1]);
+	my @V2=split("}", $strRED);
 	my $strBlock=$V2[0];
 	my @LBlock=split(",",$strBlock);
 	foreach (@LBlock)
@@ -499,12 +515,12 @@ for (my $iFile=1; $iFile<=scalar(@ListFileNameNoSlash); $iFile++)
 sub LineSubstitution($$$)
 {
     my ($line, $patt1, $patt2) =@_;
-    my @Vb1=split("bibliographystyle{", $line);
+    my @Vb1=split("bibliographystyle", $line);
     if (scalar(@Vb1) > 1)
     {
 	return $line;
     }
-    my @Vb2=split("bibliography{", $line);
+    my @Vb2=split("bibliography", $line);
     if (scalar(@Vb2) > 1)
     {
 	return $line;
