@@ -242,7 +242,7 @@ sub ExtractFileNameFromLine($)
 	}
     }
     my @VC=split("epsffile", $line);
-    if (scalar(@VC) >2)
+    if (scalar(@VC) > 2)
     {
 	print "You broke the assumption of at most one epsffile per line\n";
 	die;

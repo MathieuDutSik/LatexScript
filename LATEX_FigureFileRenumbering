@@ -127,16 +127,16 @@ sub ExtractFileNameFromLine($)
 	    return $file;
 	}
     }
-    my @VE=split("epsffile{", $line);
-    if (scalar(@VE) >2)
+    my @VE=split("epsffile", $line);
+    if (scalar(@VE) > 2)
     {
 	print "You broke the assumption of only one file per line\n";
 	die;
     }
     if (scalar(@VE) > 1)
     {
-	my @VF2=split("}", $VE[1]);
-	my $file=$VF2[0];
+	my @V2=split("}", $VE[1]);
+	my $file=$V2[0];
 	return $file;
     }
     return "Z6PO_WVJJFHHNSD";

@@ -8,11 +8,27 @@ use warnings;
 # epsfig being ordered correctly.
 
 
+
+sub GetLastNm1Characters($)
+{
+    my ($strIN)=@_;
+    my @V2sp=split("", $strIN);
+    my $strOUT="";
+    for (my $iS=1; $iS<scalar(@V2sp); $iS++)
+    {
+	$strOUT=$strOUT.$V2sp[$iS];
+    }
+    return $strOUT;
+}
+
+
+
 sub ReorderedEpsfigCall($)
 {
     my ($TheLine)=@_;
-    my @V2=split("epsfig{", $TheLine);
-    my @V3=split("}", $V2[1]);
+    my @V2=split("epsfig", $TheLine);
+    my $strHL = GetLastNm1Characters($V2[1]);
+    my @V3=split("}", $strHL);
     my $rstl=$V3[0];
     my @V4=split(",", $rstl);
     my @OrdOfficial=("file", "figure", "width", "bb", "height", "angle");
