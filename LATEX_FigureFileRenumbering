@@ -26,11 +26,26 @@ if ($uu ne 2)
 }
 
 
+sub GetLastNm1Characters($)
+{
+    my ($strIN)=@_;
+    my @V2sp=split("", $strIN);
+    my $strOUT="";
+    for (my $iS=1; $iS<scalar(@V2sp); $iS++)
+    {
+	$strOUT=$strOUT.$V2sp[$iS];
+    }
+    return $strOUT;
+}
+
+
+
 sub ExtractFromEpsfigLine($)
 {
     my ($TheLine)=@_;
-    my @V2=split("epsfig{", $TheLine);
-    my @V3=split("}", $V2[1]);
+    my @V2=split("epsfig", $TheLine);
+    my $strRED=GetLastNm1Characters($V2[1]);
+    my @V3=split("}", $strRED);
     my @V4=split(",", $V3[0]);
     for (my $iEnt=1; $iEnt<=scalar(@V4); $iEnt++)
     {
@@ -43,6 +58,8 @@ sub ExtractFromEpsfigLine($)
 	}
     }
 }
+
+
 
 
 
