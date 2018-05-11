@@ -1,0 +1,226 @@
+#!/usr/bin/perl -w
+use strict;
+use warnings;
+
+my $uu=scalar(@ARGV);
+if ($uu eq 0)
+{
+    print "Ever wondered why latex does not print directly\n";
+    print "the error found in the .tex file ...\n";
+    print "Use\n";
+    print "LATEX_InsertBibtex [FileIn] [FileOut]\n";
+    die;
+}
+
+my $FileI=$ARGV[0];
+my $FileO=$ARGV[1];
+
+
+my $TheRand=int(rand(100000));
+my $order;
+
+my $TmpDir="/tmp/BIBEXPO_".$TheRand."/";
+
+$order="mkdir -p ".$TmpDir;
+print "order=".$order."\n";
+if (system($order) != 0) {
+    die "The mkdir operation failed\n";
+}
+
+open(IN, $FileI) or die "impossible to open ".$FileI;
+my @B=<IN>;
+close(IN);
+my $nbLine=scalar(@B);
+
+sub IsStringPart($$)
+{
+    my ($eKeyBig, $eKeySma) = @_;
+    my @V2=split($eKeySma, $eKeyBig);
+    if (scalar(@V2) > 1)
+    {
+	return 1;
+    }
+    return 0;
+}
+
+#
+# Creation of the filtered article with 
+# the pictures being removed.
+# This is because we need to compile with latex (not pdflatex)
+# in order to get the .bbl file.
+#
+
+my $TmpFile=$TmpDir."file_filt.tex";
+open(OUT, "> ".$TmpFile);
+for (my $iLine=0; $iLine<$nbLine; $iLine++)
+{
+    my $eLine=$B[$iLine];
+    my $IsFigure=0;
+    #
+    my @ListKey=("epsfig", "includegraphics", "epsfbox", "epsffile");
+    my $nbKey=scalar(@ListKey);
+    for (my $iKey=0; $iKey<$nbKey; $iKey++)
+    {
+	my $test=IsStringPart($eLine, $ListKey[$iKey]);
+	if ($test eq 1)
+	{
+	    $IsFigure=1;
+	}
+    }
+    #
+    my @ListKey2=("pstex_t", "pdf_t", "pic");
+    my $test1=IsStringPart($eLine, "input");
+    if ($test1 eq 1)
+    {
+	for (my $iKey2=0; $iKey2<scalar(@ListKey2); $iKey2++)
+	{
+	    my $test2=IsStringPart($eLine, $ListKey2[$iKey2]);
+	    if ($test2 eq 1)
+	    {
+		$IsFigure=1;
+	    }
+	}
+    }
+    #
+    if ($IsFigure eq 1)
+    {
+	print OUT "\%".$eLine;
+    }
+    else
+    {
+	print OUT $eLine;
+    }
+}
+close(OUT);
+
+#
+# Finding the lines containing the key file
+# and 
+#
+
+sub ExtractTheKeyFile($)
+{
+    my ($eRestLine) = @_;
+    my @BL=split("", $eRestLine);
+    my $len=scalar(@BL);
+    my $retStr="";
+    for (my $i=1; $i<$len-1; $i++)
+    {
+	$retStr=$retStr.$BL[$i];
+    }
+    if ($BL[0] ne "{" || $BL[$len-1] ne "}")
+    {
+	print "The string should have a { in start and } at the end\n";
+	die;
+    }
+    return $retStr;
+}
+
+
+my $iLineRef=-1;
+
+my $ClsNaked;
+my $BibNaked;
+for (my $iLine=0; $iLine<$nbLine; $iLine++)
+{
+    $_=$B[$iLine];
+    s/\n//;
+    my $eLine=$_;
+    #
+    my $test=IsStringPart("bibliographystyle", $eLine);
+    if ($test eq 1)
+    {
+	if ($iLineRef ne -1)
+	{
+	    print "We have two times bibliographystyle. Most likely wrong\n";
+	}
+	$_=$B[$iLine+1];
+	s/\n//;
+	my $eLineNext=$_;
+	my $test2=IsStringPart("bibliography", $eLineNext);
+	if ($test2 eq 0)
+	{
+	    print "If line iLine=".$iLine." has bibliographystyle\n";
+	    print "eLine=".$eLine."\n";
+	    print "and the next line should contain bibliography.\n";
+	    print "Example of correct input\n";
+	    print "\\bibliographystyle{springer}\n";
+	    print "\\bibliography{WaveAdriaticRef}\n";
+	    print "Please correct\n";
+	    die;
+	}
+	$iLineRef=$iLine;
+	#
+	my @Z2=split("bibliographystyle", $eLine);
+	$ClsNaked = ExtractTheKeyFile($Z2[1]);
+	my @Z3=split("bibliography", $eLineNext);
+	$BibNaked = ExtractTheKeyFile($Z3[1]);
+    }
+}
+
+#
+# Copying the file to the temporary dir.
+#
+
+my $ClsFull=$ClsNaked.".cls";
+$order="cp ".$ClsFull." ".$TmpDir.$ClsFull;
+print "order=".$order."\n";
+if (system($order) != 0) {
+    die "The copy operation failed for the ClsFull=".$ClsFull."\n";
+}
+
+my $BibFull=$BibNaked.".bib";
+$order="cp ".$BibFull." ".$TmpDir.$BibFull;
+print "order=".$order."\n";
+if (system($order) != 0) {
+    die "The copy operation failed for the BibFull=".$BibFull."\n";
+}
+
+#
+# Doing the creation of the latex file
+#
+
+$order="(cd ".$TmpDir." && latex file_filt.tex)";
+print "order=".$order."\n";
+if (system($order) != 0) {
+    die "The latex operation failed\n";
+}
+
+$order="(cd ".$TmpDir." && bibtex file_filt.aux)";
+print "order=".$order."\n";
+if (system($order) != 0) {
+    die "The latex operation failed\n";
+}
+
+#
+# Doing the creation of the latex file
+#
+
+my $BBLfile=$TmpDir."file_filt.bbl";
+open(INFILE, $BBLfile) or die "impossible to open BBLfile=".$BBLfile."\n";
+my @VG=<INFILE>;
+close(INFILE);
+
+
+
+
+
+open(OUT, "> ".$FileO);
+my $iLineRefP1=$iLineRef+1;
+for (my $iLine=0; $iLine<$nbLine; $iLine++)
+{
+    if ($iLine eq $iLineRef)
+    {
+	print OUT @VG;
+    }
+    else
+    {
+	if ($iLine ne $iLineRefP1)
+	{
+	    print OUT $B[$iLine];
+	}
+    }
+}
+close(OUT);
+
+

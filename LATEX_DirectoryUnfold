@@ -273,6 +273,12 @@ sub ExtractFileNameFromLine($)
 	$LFileFound[0]=$file;
 	return @LFileFound;
     }
+    my @preVW3=split("thebibliography", $line);
+    if (scalar(@preVW3) > 1)
+    {
+	my @LST=();
+	return @LST;
+    }
     my @VW3=split("bibliography", $line);
     if (scalar(@VW3) > 1)
     {
