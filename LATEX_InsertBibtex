@@ -35,6 +35,7 @@ my $nbLine=scalar(@B);
 sub IsStringPart($$)
 {
     my ($eKeyBig, $eKeySma) = @_;
+#    print "eKeySma=".$eKeySma."\n";
     my @V2=split($eKeySma, $eKeyBig);
     if (scalar(@V2) > 1)
     {
@@ -111,6 +112,7 @@ sub ExtractTheKeyFile($)
     if ($BL[0] ne "{" || $BL[$len-1] ne "}")
     {
 	print "The string should have a { in start and } at the end\n";
+	print "eRestLine=".$eRestLine."\n";
 	die;
     }
     return $retStr;
@@ -119,7 +121,8 @@ sub ExtractTheKeyFile($)
 
 my $iLineRef=-1;
 
-my $ClsNaked;
+my $ClsNaked="";
+my $BstNaked;
 my $BibNaked;
 for (my $iLine=0; $iLine<$nbLine; $iLine++)
 {
@@ -127,8 +130,9 @@ for (my $iLine=0; $iLine<$nbLine; $iLine++)
     s/\n//;
     my $eLine=$_;
     #
-    my $test=IsStringPart("bibliographystyle", $eLine);
-    if ($test eq 1)
+    my @VSL=split("", $eLine);
+    my $test=IsStringPart($eLine, "bibliographystyle");
+    if ($test eq 1 && $VSL[0] ne "%")
     {
 	if ($iLineRef ne -1)
 	{
@@ -137,7 +141,7 @@ for (my $iLine=0; $iLine<$nbLine; $iLine++)
 	$_=$B[$iLine+1];
 	s/\n//;
 	my $eLineNext=$_;
-	my $test2=IsStringPart("bibliography", $eLineNext);
+	my $test2=IsStringPart($eLineNext, "bibliography");
 	if ($test2 eq 0)
 	{
 	    print "If line iLine=".$iLine." has bibliographystyle\n";
@@ -152,15 +156,77 @@ for (my $iLine=0; $iLine<$nbLine; $iLine++)
 	$iLineRef=$iLine;
 	#
 	my @Z2=split("bibliographystyle", $eLine);
-	$ClsNaked = ExtractTheKeyFile($Z2[1]);
+	print "eLine=".$eLine."\n";
+	print "Z2[1]=".$Z2[1]."\n";
+	$BstNaked = ExtractTheKeyFile($Z2[1]);
+	#
 	my @Z3=split("bibliography", $eLineNext);
+	print "eLineNext=".$eLineNext."\n";
+	print "Z3[1]=".$Z3[1]."\n";
 	$BibNaked = ExtractTheKeyFile($Z3[1]);
     }
+    #
+    #
+    #
+    my @Z4=split("documentclass", $eLine);
+    my $Z4siz=scalar(@Z4);
+    print "Z4siz=".$Z4siz."\n";
+    if (scalar(@Z4) > 1 && $VSL[0] ne "%")
+    {
+	print "matching\n";
+	my @PSL=split("", $eLine);
+	my $posOpen=-1;
+	my $posClos=-1;
+	for (my $pos=0; $pos<scalar(@PSL); $pos++)
+	{
+	    my $eChar=$PSL[$pos];
+#	    print "pos=".$pos." eChar=".$eChar."\n";
+	    if ($eChar eq "{")
+	    {
+		if ($posOpen ne -1)
+		{
+		    print "We have two { in the line. ILLEGAL\n";
+		    die;
+		}
+		$posOpen=$pos;
+	    }
+	    if ($eChar eq "}")
+	    {
+		if ($posClos ne -1)
+		{
+		    print "We have two } in the line. ILLEGAL\n";
+		    die;
+		}
+		$posClos=$pos;
+	    }
+	}
+	print "posOpen=".$posOpen." posClos=".$posClos."\n";
+	for (my $pos=$posOpen+1; $pos<$posClos; $pos++)
+	{
+	    my $eChar = $PSL[$pos];
+	    $ClsNaked=$ClsNaked.$eChar;
+	}
+    }
+    
 }
 
 #
 # Copying the file to the temporary dir.
 #
+
+my $BstFull=$BstNaked.".bst";
+$order="cp ".$BstFull." ".$TmpDir.$BstFull;
+print "order=".$order."\n";
+if (system($order) != 0) {
+    die "The copy operation failed for the BstFull=".$BstFull."\n";
+}
+
+my $BibFull=$BibNaked.".bib";
+$order="cp ".$BibFull." ".$TmpDir.$BibFull;
+print "order=".$order."\n";
+if (system($order) != 0) {
+    die "The copy operation failed for the BibFull=".$BibFull."\n";
+}
 
 my $ClsFull=$ClsNaked.".cls";
 $order="cp ".$ClsFull." ".$TmpDir.$ClsFull;
@@ -169,11 +235,27 @@ if (system($order) != 0) {
     die "The copy operation failed for the ClsFull=".$ClsFull."\n";
 }
 
-my $BibFull=$BibNaked.".bib";
-$order="cp ".$BibFull." ".$TmpDir.$BibFull;
+#
+# reading the .clo files.
+#
+
+my $FileLS="/tmp/ListFile";
+$order="ls *.clo > ".$FileLS;
 print "order=".$order."\n";
 if (system($order) != 0) {
-    die "The copy operation failed for the BibFull=".$BibFull."\n";
+    die "The ls operation failed\n";
+}
+
+open(INF, $FileLS) or die "impossible to open FileLS=".$FileLS."\n";
+while(<INF>)
+{
+    chomp($_);
+    my $eFileLS=$_;
+    $order="cp ".$eFileLS." ".$TmpDir.$eFileLS;
+    print "order=".$order."\n";
+    if (system($order) != 0) {
+	die "The cp operation failed\n";
+    }
 }
 
 #
