@@ -19,6 +19,13 @@ Also, some additional formatting may be necessary. The goal
 of the perl scripts in LatexScript is to help the author work
 out all this.
 
+Usually the submission system of elsevier/springer are really
+problematic because they accept only a certain kind of latex
+files, do not accept bibtex. Also their technical editors are
+typically in India and out of their depth when a non-trivial
+question is asked. Note that there is very little difference
+between elsevier and springer submission systems.
+
 Disclaimer: this author is not responsible for any bug that
 happen when using the program. You are best to save your stuff.
 I cannot be held responsible for bugs and trouble that accompany
@@ -43,7 +50,7 @@ List of available scripts
 -------------------------
 
 Following programs are available in LatexScript
-  * **RemovePercentLine**: Remove commentaries indicated by %
+  * **RemovePercentLine**: Remove commentaries indicated by %. Recommended in all cases, you do not want your intimate comments to be seen by the editor.
   * **DirectoryUnfold**: Put all files in a directory and ensures
 that the result still compiles. Necessary for arxiv and
 Elsevier submissions.
@@ -55,15 +62,16 @@ are organized in a certain way. This program will allow you to comply.
 and should be replaced by
 \epsfig{file=MyImage.eps, height=3mm}
   * **CheckCitation**: This program detect citation which are not used in the text It also give detects some other possible inconsistencies.
-  * **CheckReference**: This program detect equation reference that are not used and other inconsistencies
-  * **MakeArxivArch**: This programs make an archive directly submittable to the arxiv
+  * **CheckReference**: This program detect equation reference that are not used and other inconsistencies.
+  * **MakeArxivArch**: This program makes an archive directly submittable to the arxiv.
 repository system.
-  * **SimpleCopy**: This program copies the file of a paper to another directory and copies as well all the dependencies that may exist
+  * **SimpleCopy**: This program copies the file of a paper to another directory and copies as well all the dependencies that may exist.
   * **SimpleCopyForEdit**: This program differs from the preceding in that it copies as well the makefile if existing and also the .fig file or .png files if existing.
+  * **LATEX_InsertBibtex**: This program inserts the bibliography in bib file in a latex file. This also work for files used in pdflatex which are incompatible with bibtex program.
+  * **LATEX_MakeElsevierSpringer**: This program makes an archive containing the files to be submitted and generally does all operations for elsevier/springer submission.
 
 
 References
 ----------
 
 The latex editing system is well documented See for example https://latex-project.org/intro.html
-
