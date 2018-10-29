@@ -47,11 +47,9 @@ print "WorkDir=".$WorkDir."\n";
 my $TmpDir="/tmp/".$WorkDir;
 print "TmpDir=".$TmpDir."\n";
 
-my $order;
-
-$order="mkdir ".$TmpDir;
-print $order."\n";
-if (system($order) != 0) {
+my $order1="mkdir ".$TmpDir;
+print "order1=".$order1."\n";
+if (system($order1) != 0) {
     die "Error for mkdir operation\n";
 }
 
@@ -91,24 +89,22 @@ sub TheCleanUp()
     for (my $i=1; $i<=5; $i++)
     {
 	my $eDir=$SaveDir.$i;
-	my $order="rm -rf ".$eDir;
-	print $order."\n";
-	if (system($order) != 0) {
+	my $order2="rm -rf ".$eDir;
+	print "order2=".$order2."\n";
+	if (system($order2) != 0) {
 	    die "Error while doing rm operation\n";
 	}
     }
     #
-    my $order;
-    #
-    $order="rm -rf ".$SaveDir;
-    print $order."\n";
-    if (system($order) != 0) {
+    my $order3="rm -rf ".$SaveDir;
+    print "order3=".$order3."\n";
+    if (system($order3) != 0) {
 	die "Error while doing rm operation\n";
     }
     #
-    $order="rm -rf ".$TmpDir;
-    print $order."\n";
-    if (system($order) != 0) {
+    my $order4="rm -rf ".$TmpDir;
+    print "order4=".$order4."\n";
+    if (system($order4) != 0) {
 	die "Error while doing rm operation\n";
     }
 }
@@ -130,9 +126,9 @@ if ($TSL[0] ne "/")
 
 
 
-$order="mkdir ".$SaveDir1;
-print $order."\n";
-if (system($order) != 0) {
+my $order5="mkdir ".$SaveDir1;
+print "order5=".$order5."\n";
+if (system($order5) != 0) {
     die "Error while doing operation\n";
 }
 
@@ -146,9 +142,9 @@ if (system($order) != 0) {
 # Files in pap1
 #
 
-$order="LATEX_DirectoryUnfold ".$SaveDir1." ".$File;
-print $order."\n";
-if (system($order) != 0) {
+my $order6="LATEX_DirectoryUnfold ".$SaveDir1." ".$File;
+print "order6=".$order6."\n";
+if (system($order6) != 0) {
     die "Error while doing operation\n";
 }
 
@@ -156,15 +152,15 @@ if (system($order) != 0) {
 # Merging into a single latex file
 #
 
-$order="(cd ".$TmpDir." && cp -r ".$eDir1." ".$eDir2.")";
-print $order."\n";
-if (system($order) != 0) {
+my $order7="(cd ".$TmpDir." && cp -r ".$eDir1." ".$eDir2.")";
+print "order7=".$order7."\n";
+if (system($order7) != 0) {
     die "Error while doing operation\n";
 }
 
-$order="(cd ".$SaveDir2." && LATEX_FileMerging ".$File.")";
-print $order."\n";
-if (system($order) != 0) {
+my $order8="(cd ".$SaveDir2." && LATEX_FileMerging ".$File.")";
+print "order8=".$order8."\n";
+if (system($order8) != 0) {
     die "Error while doing operation\n";
 }
 
@@ -172,23 +168,23 @@ if (system($order) != 0) {
 # Removal of percent
 #
 
-$order="(cd ".$TmpDir." && cp -r ".$eDir2." ".$eDir3.")";
-print $order."\n";
-if (system($order) != 0) {
+my $order9="(cd ".$TmpDir." && cp -r ".$eDir2." ".$eDir3.")";
+print "order9=".$order9."\n";
+if (system($order9) != 0) {
     die "Error while doing operation\n";
 }
 
 my $LatexTemp=$TmpDir."/temp.tex";
 
-$order="(cd ".$SaveDir3." && LATEX_RemovePercentLine < ".$File." > ".$LatexTemp.")";
-print $order."\n";
-if (system($order) != 0) {
+my $order10="(cd ".$SaveDir3." && LATEX_RemovePercentLine < ".$File." > ".$LatexTemp.")";
+print "order10=".$order10."\n";
+if (system($order10) != 0) {
     die "Error while doing operation\n";
 }
 
-$order="(cd ".$SaveDir3." && mv ".$LatexTemp." ".$File.")";
-print $order."\n";
-if (system($order) != 0) {
+my $order11="(cd ".$SaveDir3." && mv ".$LatexTemp." ".$File.")";
+print "order11=".$order11."\n";
+if (system($order11) != 0) {
     die "Error while doing operation\n";
 }
 
@@ -196,34 +192,76 @@ if (system($order) != 0) {
 # Now renaming the figures according to Elsevier standard
 #
 
-$order="(cd ".$TmpDir." && cp -r ".$eDir3." ".$eDir4.")";
-print $order."\n";
-if (system($order) != 0) {
+my $order12="(cd ".$TmpDir." && cp -r ".$eDir3." ".$eDir4.")";
+print "order12=".$order12."\n";
+if (system($order12) != 0) {
     die "Error while doing operation\n";
 }
 
-$order="(cd ".$SaveDir4." && LATEX_FigureFileRenumbering 2 ".$File.")";
-print $order."\n";
-if (system($order) != 0) {
+my $order13="(cd ".$SaveDir4." && LATEX_FigureFileRenumbering 2 ".$File.")";
+print "order13=".$order13."\n";
+if (system($order13) != 0) {
     die "Error while doing operation\n";
 }
 
-$order="(cd ".$SaveDir4." && LATEX_BBL_merging ".$File.")";
-print $order."\n";
-if (system($order) != 0) {
+my $order14="(cd ".$SaveDir4." && LATEX_BBL_merging ".$File.")";
+print "order14=".$order14."\n";
+if (system($order14) != 0) {
     die "Error while doing operation\n";
 }
+
+
+opendir (DIR, $SaveDir4) or die "impossible to open ".$SaveDir4;
+my @ListBIBfile=();
+while (my $file = readdir(DIR)) {
+#    print "file=".$file."\n";
+    my $len=length $file;
+    my $lenB=$len-4;
+#    print "   lenB=".$lenB."\n";
+    if ($lenB >= 0) {
+	my $TheExt=substr $file, $lenB;
+#	print "   TheExt=".$TheExt."\n";
+	if ($TheExt eq ".bib")
+	{
+#	    print "   Matching\n";
+	    $ListBIBfile[scalar(@ListBIBfile)] = $file;
+	}
+    }
+}
+my $nbBIB=scalar(@ListBIBfile);
+print "nbBIB=".$nbBIB."\n";
+if ($nbBIB > 1)
+{
+    print "There is one more bib file than needed\n";
+    print "Not allowed\n";
+    die;
+}
+
+foreach my $file(@ListBIBfile)
+{
+    my $FileExt=$SaveDir4."/".$file;
+    print "FileExt=".$FileExt."\n";
+    my $order15="rm -f ".$FileExt;
+    print "order15=".$order15."\n";
+    if (system($order15) != 0) {
+	die "Error while doing operation\n";
+    }
+}
+
+
+
+
 
 my $TmpFile="/tmp/filebstl.tex";
-$order="(cd ".$SaveDir4." && LATEX_ReorderEpsfig < ".$File." > ".$TmpFile.")";
-print $order."\n";
-if (system($order) != 0) {
+my $order16="(cd ".$SaveDir4." && LATEX_ReorderEpsfig < ".$File." > ".$TmpFile.")";
+print "order16=".$order16."\n";
+if (system($order16) != 0) {
     die "Error while doing operation\n";
 }
 
-$order="(cd ".$SaveDir4." && mv ".$TmpFile." ".$File.")";
-print $order."\n";
-if (system($order) != 0) {
+my $order17="(cd ".$SaveDir4." && mv ".$TmpFile." ".$File.")";
+print "order17=".$order17."\n";
+if (system($order17) != 0) {
     die "Error while doing operation\n";
 }
 
@@ -231,23 +269,23 @@ if (system($order) != 0) {
 # Copying into the final and creating tar.gz
 #
 
-$order="(cd ".$TmpDir." && cp -r ".$eDir4." ".$eDir.")";
-print $order."\n";
-if (system($order) != 0) {
+my $order18="(cd ".$TmpDir." && cp -r ".$eDir4." ".$eDir.")";
+print "order18=".$order18."\n";
+if (system($order18) != 0) {
     die "Error while doing operation\n";
 }
 
 my $eArch=$eDir.".tar.gz";
 
-$order="(cd ".$TmpDir." && tar -c ".$eDir." | gzip > ".$eArch.")";
-print $order."\n";
-if (system($order) != 0) {
+my $order19="(cd ".$TmpDir." && tar -c ".$eDir." | gzip > ".$eArch.")";
+print "order19=".$order19."\n";
+if (system($order19) != 0) {
     die "Error while doing operation\n";
 }
 
-$order="(cd ".$TmpDir." && mv ".$eArch." ".$TheArch.")";
-print $order."\n";
-if (system($order) != 0) {
+my $order20="(cd ".$TmpDir." && mv ".$eArch." ".$TheArch.")";
+print "order20=".$order20."\n";
+if (system($order20) != 0) {
     die "Error while doing operation\n";
 }
 
