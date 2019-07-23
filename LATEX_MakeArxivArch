@@ -125,6 +125,45 @@ if (system($order) != 0) {
     die "Error in mv operation";
 }
 
+sub MySplitTwo($$)
+{
+    my ($strpart, $strtot) = @_;
+    my @Vpart=split("", $strpart);
+    my $lenpart=scalar(@Vpart);
+    my @Vtot=split("", $strtot);
+    my $lentot=scalar(@Vtot);
+    for (my $shift=0; $shift<$lentot-$lenpart; $shift++)
+    {
+        my $test=1;
+        for (my $jChar=0; $jChar<$lenpart; $jChar++)
+        {
+            my $eChar=$Vpart[$jChar];
+            my $fChar=$Vtot[$shift + $jChar];
+            if ($eChar ne $fChar)
+            {
+                $test=0;
+            }
+        }
+        if ($test eq 1)
+        {
+            my $str1="";
+            for (my $iChar=0; $iChar<$shift; $iChar++)
+            {
+                $str1=$str1.$Vtot[$iChar];
+            }
+            my $str2="";
+            for (my $iChar=$shift+$lenpart; $iChar<$lentot; $iChar++)
+            {
+                $str2=$str2.$Vtot[$iChar];
+            }
+            my @US=($str1, $str2);
+            return @US;
+        }
+    }
+    return $strtot;
+}
+
+
 my $TotalFileTex=$SaveDir."/".$File;
 #print "TotalFileTex=".$TotalFileTex."\n";
 #print "File=".$File."\n";
@@ -140,20 +179,22 @@ for (my $iLine=1; $iLine<=$nbLine; $iLine++)
     if ($HasBibliography == 0)
     {
 	my $line=$B[$iLine-1];
-	my @VL=split("bibliography{", $line);
-	if (scalar(@VL) > 1)
+#	my @VL1=split("bibliography{", $line);
+	my @VL1=MySplitTwo("bibliography{", $line);
+	if (scalar(@VL1) > 1)
 	{
-	    my $eStr1=$VL[1];
-	    my @VL2=split("}", $eStr1);
-	    $BiblioFileBlock=$VL2[0];
+	    my $eStr1=$VL1[1];
+	    my @VS1=split("}", $eStr1);
+	    $BiblioFileBlock=$VS1[0];
 	    $HasBibliography=1;
 	}
-	my @VL=split("bibliographystyle{", $line);
-	if (scalar(@VL) > 1)
+#	my @VL=split("bibliographystyle{", $line);
+	my @VL2=MySplitTwo("bibliographystyle{", $line);
+	if (scalar(@VL2) > 1)
 	{
-	    my $eStr1=$VL[1];
-	    my @VL2=split("}", $eStr1);
-	    $BiblioFileStyle=$VL2[0];
+	    my $eStr1=$VL2[1];
+	    my @VS2=split("}", $eStr1);
+	    $BiblioFileStyle=$VS2[0];
 	    $HasBibliographyStyle=1;
 	}
     }
@@ -168,19 +209,19 @@ if ($HasBibliography eq 1)
     if (system($order) != 0) {
 	die "Error in cp -r";
     }
-    
+
     $order="(cd ".$CompilDir." && latex ".$File.")";
     print $order."\n";
     if (system($order) != 0) {
 	die "Error in latex";
     }
-    
+
     $order="(cd ".$CompilDir." && bibtex ".$FileRed.")";
     print $order."\n";
     if (system($order) != 0) {
 	die "Error in bibtex";
     }
-    
+
     my $eFile1=$SaveDir."/".$FileRed.".bbl";
     my $eFile2=$CompilDir."/".$FileRed.".bbl";
     $order="cp ".$eFile2." ".$eFile1;
@@ -202,8 +243,8 @@ if ($HasBibliography eq 1)
 	}
     }
 
-    my $eFile1=$SaveDir."/".$BiblioFileStyle.".bst";
-    $order="rm -f ".$eFile1;
+    my $eFile3=$SaveDir."/".$BiblioFileStyle.".bst";
+    $order="rm -f ".$eFile3;
     print $order."\n";
     if (system($order) != 0) {
 	die "Error in rm -f";
