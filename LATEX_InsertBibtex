@@ -96,7 +96,6 @@ close(OUT);
 
 #
 # Finding the lines containing the key file
-# and 
 #
 
 sub ExtractTheKeyFile($)
@@ -259,10 +258,33 @@ while(<INF>)
 }
 
 #
+# Determining if we need to use latex or pdflatex
+#
+
+open(INF, $FileI) or die "impossible to open ".$File;
+my @WKR=<INF>;
+close(INF);
+
+my $LatexString = "latex";
+for (my $iW=0; $iW<scalar(@WKR); $iW++)
+{
+    my @BS=split("includegraphics", $WKR[$iW]);
+    if (scalar(@WKR) > 1)
+    {
+        my @BS2 = split("pdf", $BS[1]);
+        if (scalar(@BS2) > 1)
+        {
+            $LatexString = "pdflatex";
+        }
+    }
+}
+
+
+#
 # Doing the creation of the latex file
 #
 
-$order="(cd ".$TmpDir." && latex file_filt.tex)";
+$order="(cd ".$TmpDir." && ".$LatexString." file_filt.tex)";
 print "order=".$order."\n";
 if (system($order) != 0) {
     die "The latex operation failed\n";

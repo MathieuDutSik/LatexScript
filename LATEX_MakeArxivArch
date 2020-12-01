@@ -65,12 +65,34 @@ else
     die;
 }
 
+#
+# Determining if we need to use latex or pdflatex
+#
 
+open(INF, $File) or die "impossible to open ".$File;
+my @WKR=<INF>;
+close(INF);
+
+my $LatexString = "latex";
+for (my $iW=0; $iW<scalar(@WKR); $iW++)
+{
+    my @BS=split("includegraphics", $WKR[$iW]);
+    if (scalar(@WKR) > 1)
+    {
+        my @BS2 = split("pdf", $BS[1]);
+        if (scalar(@BS2) > 1)
+        {
+            $LatexString = "pdflatex";
+        }
+    }
+}
 
 
 
 #
 # determine archive name
+#
+
 my @U=split("/", $TheArch);
 my $TheName=$U[scalar(@U)-1];
 my @VL=split("", $TheName);
@@ -202,6 +224,7 @@ for (my $iLine=1; $iLine<=$nbLine; $iLine++)
 print "HasBibliography=".$HasBibliography."\n";
 
 
+
 if ($HasBibliography eq 1)
 {
     $order="cp -r ".$SaveDir." ".$CompilDir;
@@ -210,7 +233,7 @@ if ($HasBibliography eq 1)
 	die "Error in cp -r";
     }
 
-    $order="(cd ".$CompilDir." && latex ".$File.")";
+    $order="(cd ".$CompilDir." && ".$LatexString." ".$File.")";
     print $order."\n";
     if (system($order) != 0) {
 	die "Error in latex";
