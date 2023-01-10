@@ -1,0 +1,41 @@
+#! /usr/bin/python3
+import os
+
+if len(os.sys.argv) != 2:
+    print("Program is used as")
+    print("LATEX_EliminateAfterEndDocument [FileIn]")
+    os.sys.exit(1)
+
+TheFile= os.sys.argv[1]
+
+f = open(TheFile, 'r')
+ListLines = f.readlines();
+f.close()
+
+n_line = len(ListLines)
+
+
+def get_percent_reduced(eline):
+    ThePos = eline.rfind("%")
+    if ThePos == -1:
+        return eline
+    return eline[0:ThePos]
+
+
+for iline in range(n_line):
+    strA = ListLines[iline]
+    strB = strA.splitlines()[0]
+    strC = get_percent_reduced(strB)
+    ListLines[iline] = strC
+
+def get_last_line():
+    for iline in range(n_line):
+        index = ListLines[iline].find("end{document}")
+        if index != -1:
+            return iline+1
+    return n_line+1
+
+
+n_line_last = get_last_line()
+for iline in range(n_line_last):
+    print(ListLines[iline])
