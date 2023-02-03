@@ -15,12 +15,13 @@ f.close()
 n_line = len(ListLines)
 
 
-def is_empty_line(e_line):
-    return len(e_line) == 0
+def is_empty(e_line):
+    if e_line == "\n":
+        return True
+    return False
 
 
 L_Status = [True] * n_line
-
 for iline in range(1,n_line):
     line1 = ListLines[iline-1]
     line2 = ListLines[iline]
@@ -30,4 +31,4 @@ for iline in range(1,n_line):
 
 for iline in range(n_line):
     if L_Status[iline]:
-        print(ListLines[iline])
+        print(ListLines[iline].rstrip())
