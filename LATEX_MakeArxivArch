@@ -129,6 +129,7 @@ if (system($order) != 0) {
 
 my $Temporary1="./Temporary_File1.tex";
 my $Temporary2="./Temporary_File2.tex";
+my $Temporary3="./Temporary_File3.tex";
 
 $order="LATEX_RemovePercentLine < ".$File." > ".$Temporary1;
 print $order."\n";
@@ -144,16 +145,23 @@ if (system($order) != 0) {
 
 my $Temporary1_ext=$SaveDir."/".$Temporary1;
 my $Temporary2_ext=$SaveDir."/".$Temporary2;
+my $Temporary3_ext=$SaveDir."/".$Temporary3;
 
 $order="LATEX_EliminateAfterEndDocument ".$Temporary1_ext." > ".$Temporary2_ext;
 print $order."\n";
-
 if (system($order) != 0) {
     die "Error in LATEX_EliminateAfterEndDocument";
 }
 
+$order="LATEX_EliminateConsecutiveEmptyLines ".$Temporary2_ext." > ".$Temporary3_ext;
+print $order."\n";
+if (system($order) != 0) {
+    die "Error in LATEX_EliminateConsecutiveEmptyLines";
+}
+
+
 print "SaveDir=".$SaveDir."\n";
-$order="(cd ".$SaveDir." && rm -f ".$Temporary1." && mv ".$Temporary2." ".$File.")";
+$order="(cd ".$SaveDir." && rm -f ".$Temporary1." ".$Temporary2." && mv ".$Temporary3." ".$File.")";
 print $order."\n";
 if (system($order) != 0) {
     die "Error in mv operation";
