@@ -45,8 +45,8 @@ sub TheCleanUp()
     if (system($order) != 0) {
 	die "Error in rm -rf";
     }
-
 }
+
 my @WK=split("", $File);
 my $len=scalar(@WK);
 my $FileRed="";
@@ -127,21 +127,33 @@ if (system($order) != 0) {
     die "Error in mkdir ".$SaveDir;
 }
 
-my $TemporaryShit="./TemporaryFilePleaseRemove.tex";
+my $Temporary1="./Temporary_File1.tex";
+my $Temporary2="./Temporary_File2.tex";
 
-$order="LATEX_RemovePercentLine < ".$File." > ".$TemporaryShit;
+$order="LATEX_RemovePercentLine < ".$File." > ".$Temporary1;
 print $order."\n";
 if (system($order) != 0) {
     die "Error in LATEX_RemovePercentLine";
 }
 
-$order="LATEX_DirectoryUnfold ".$SaveDir." ".$TemporaryShit;
+$order="LATEX_DirectoryUnfold ".$SaveDir." ".$Temporary1;
 print $order."\n";
 if (system($order) != 0) {
     die "Error in LATEX_DirectoryUnfold";
 }
 
-$order="(cd ".$SaveDir." && mv ".$TemporaryShit." ".$File.")";
+my $Temporary1_ext=$SaveDir."/".$Temporary1;
+my $Temporary2_ext=$SaveDir."/".$Temporary2;
+
+$order="LATEX_EliminateAfterEndDocument ".$Temporary1_ext." > ".$Temporary2_ext;
+print $order."\n";
+
+if (system($order) != 0) {
+    die "Error in LATEX_EliminateAfterEndDocument";
+}
+
+print "SaveDir=".$SaveDir."\n";
+$order="(cd ".$SaveDir." && rm -f ".$Temporary1." && mv ".$Temporary2." ".$File.")";
 print $order."\n";
 if (system($order) != 0) {
     die "Error in mv operation";
@@ -280,7 +292,7 @@ if (system($order) != 0) {
     die "Error in tar";
 }
 
-$order="rm -f ".$TemporaryShit;
+$order="rm -f ".$Temporary1." ".$Temporary2;
 print $order."\n";
 if (system($order) != 0) {
     die "Error in rm -f";
