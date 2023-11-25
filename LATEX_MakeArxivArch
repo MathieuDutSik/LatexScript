@@ -295,6 +295,12 @@ if ($HasBibliography eq 1)
     if (system($order) != 0) {
 	die "Error in rm -f";
     }
+
+    $order="(cd ".$SaveDir." && LATEX_BBL_merging ".$FileRed.".tex)";
+    print $order."\n";
+    if (system($order) != 0) {
+	die "Application of LATEX_BBL_merging";
+    }
 }
 
 $order="(cd ".$TmpDir." && tar -c ".$eStr. " | gzip > ".$TheArch.")";
