@@ -255,9 +255,12 @@ if ($HasBibliography eq 1)
 
     $order="(cd ".$CompilDir." && ".$LatexString." ".$File.")";
     print $order."\n";
-    if (system($order) != 0) {
-	die "Error in latex";
-    }
+    my $result = system($order);
+    print "result=".$result."\n";
+    # There is some inconsistencies in the return error code, so we stop here now.
+    #    if ($result != 0) {
+    #	    die "Error in latex";
+    #    }
 
     $order="(cd ".$CompilDir." && bibtex ".$FileRed.")";
     print $order."\n";
