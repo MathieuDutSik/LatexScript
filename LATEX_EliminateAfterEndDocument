@@ -14,19 +14,10 @@ f.close()
 
 n_line = len(ListLines)
 
-
-def get_percent_reduced(eline):
-    ThePos = eline.rfind("%")
-    if ThePos == -1:
-        return eline
-    return eline[0:ThePos]
-
-
 for iline in range(n_line):
     strA = ListLines[iline]
     strB = strA.splitlines()[0]
-    strC = get_percent_reduced(strB)
-    ListLines[iline] = strC
+    ListLines[iline] = strB
 
 def get_last_line():
     for iline in range(n_line):
